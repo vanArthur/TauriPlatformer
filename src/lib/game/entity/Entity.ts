@@ -21,8 +21,6 @@ export default class Entity {
   collider: any;
   friction: number;
   shapes: any;
-  maxLeft: number;
-  minRight: number;
   constructor(id: string, pos: Vec2, shape: Shape | Shape[]) {
     this.pos = new Vec2(pos.x, pos.y);
     this.vel = new Vec2();
@@ -32,8 +30,6 @@ export default class Entity {
     this.gravity = 9.81;
     this.collider = undefined;
     this.friction = 7;
-    this.maxLeft = 0;
-    this.minRight = 1000000000;
     if (Array.isArray(shape)) {
       this.shapes = shape;
     } else {
@@ -41,13 +37,16 @@ export default class Entity {
     }
   }
 
-  setCollider(shape: Shape) {
+  setCollider(shape: any) {
     this.collider = shape;
   }
 
-  getCollider(): Shape {
-    this.collider.pos = this.pos;
-    return this.collider;
+  getCollider(): any {
+    if (this.collider != undefined) {
+      this.collider.pos = this.pos;
+      return this.collider;
+    }
+    return undefined
   }
 
   move(deltaTime: number, colliders: any): void {
@@ -95,11 +94,14 @@ export default class Entity {
     this.vel = new Vec2(0, 0);
   }
 
+
+
   rectangleCollision(rects: { [id: string]: any }): { [id: string]: boolean } {
     let vcol = false;
     let hcol = false;
     for (var i in rects) {
       let rect: any = rects[i].getCollider();
+      if (rect == undefined) continue;
 
       //hor collision
       if (
@@ -111,7 +113,7 @@ export default class Entity {
         if (this.vel.x >= 0) {
           let xdist = distBetweenPoints(0, this.getRight(), 0, rect.pos.x);
           if (this.vel.x > xdist) {
-            this.vel.x = xdist;
+            this.vel.x = xdist - .1;
             hcol = true;
           }
         } else if (this.vel.x < 0) {
@@ -122,7 +124,7 @@ export default class Entity {
             rect.pos.x + rect.width
           );
           if (-this.vel.x > xdist) {
-            this.vel.x = -xdist;
+            this.vel.x = -xdist + .1;
             hcol = true;
           }
         }
@@ -156,43 +158,6 @@ export default class Entity {
       }
     }
     return { vcol: vcol, hcol: hcol };
-  }
-  rectangleCollisionOld(rects: { [id: string]: Platform }) {
-    for (var i in rects) {
-      const rect: any = rects[i].getCollider();
-
-      if (this.vel.x < 0) {
-        this.maxLeft = CubeRayCollisionLeft(this, [rects[i].getRightSide()]);
-      } else if (this.vel.x > 0) {
-        this.minRight = CubeRayCollisionRight(this, [rects[i].getRightSide()]);
-      }
-
-      //vert collision
-      let vert = () => {
-        return cubeCollision(
-          this.pos.copy().add(new Vec2(0, this.vel.y / 4)),
-          this.shapes[0].width,
-          this.shapes[0].height,
-          rect.pos,
-          rect.width,
-          rect.height
-        );
-      };
-      let res = vert();
-
-      if (this.vel.y > 0 && res) {
-        while (vert()) {
-          this.pos.y -= 0.1;
-        }
-        this.grounded = true;
-        this.vel.y = 0;
-      } else if (this.vel.y < 0 && res) {
-        while (vert()) {
-          this.pos.y += 0.1;
-        }
-        this.vel.y = 0;
-      }
-    }
   }
   getLeft(): number {
     return this.pos.x;
