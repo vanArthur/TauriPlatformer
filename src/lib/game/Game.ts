@@ -4,11 +4,13 @@ import { Platform } from "./entity/Platform.js";
 import { Player } from "./entity/Player.js";
 import { randomId } from "./helperFunctions/randomId.js";
 import { event } from "@tauri-apps/api";
+import { Flag } from "./entity/Flag";
+import { appWindow } from "@tauri-apps/api/window";
 
 export class Game {
   controller: Controller;
   player: Player;
-  platforms: { [id: string]: Platform };
+  entities: { [id: string]: Platform };
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   deltaTime: number;
@@ -16,9 +18,9 @@ export class Game {
 
   constructor(canvas: HTMLCanvasElement) {
     this.controller = new Controller(document);
-    this.controller.addKeys(["KeyA", "KeyD", "Space", "KeyF"]);
+    this.controller.addKeys(["KeyA", "KeyD", "Space", "KeyF", "MetaLeft"]);
     this.player = new Player(new Vec2(50, 50), "black", this.controller);
-    this.platforms = {};
+    this.entities = {};
     this.ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
     this.canvas = canvas;
     this.deltaTime = 0;
@@ -26,6 +28,8 @@ export class Game {
   }
 
   init() {
+    appWindow.setTitle("Tauri Platformer");
+
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
     this.resizeEvent();
@@ -49,6 +53,8 @@ export class Game {
       20,
       "brown"
     );
+    this.entities["flag"] = new Flag("flag", new Vec2(200, 200));
+
     this.gameLoop(0);
 
     //++++++++++++++++++++++++
@@ -63,10 +69,10 @@ export class Game {
     }).bind(this);
 
     const onMove = (() => {
-      if (this.platforms["temp"] != undefined) {
-        this.platforms["temp"].shapes[0].width =
+      if (this.entities["temp"] != undefined) {
+        this.entities["temp"].shapes[0].width =
           this.controller.mousePos!.x - this.controller.mouseDownPos!.x;
-        this.platforms["temp"].shapes[0].height =
+        this.entities["temp"].shapes[0].height =
           this.controller.mousePos!.y - this.controller.mouseDownPos!.y;
       }
     }).bind(this);
@@ -88,23 +94,29 @@ export class Game {
 
       const randId = randomId();
       this.addPlatform(randId, pfPos, pfW, pfH, "green");
-      this.platforms[randId].export();
     }).bind(this);
     //++++++++++++++++++++++++
     this.controller.addDoOn("mousedown", onDown);
     this.controller.addDoOn("mousemove", onMove);
     this.controller.addDoOn("mouseup", onUp);
+    this.controller.addDoOn("keydown", (e) => {
+      if (this.controller.isPressed("MetaLeft")) {
+        if (e.code == "KeyA") {
+          appWindow.close();
+        }
+      }
+    });
   }
 
   update(deltaTime: number) {
-    this.player.movement(deltaTime, this.platforms);
+    this.player.movement(deltaTime, this.entities);
     this.controller.mousePos;
   }
 
   render(ctx: CanvasRenderingContext2D) {
     this.player.render(ctx);
-    for (var id in this.platforms) {
-      this.platforms[id].render(ctx);
+    for (var id in this.entities) {
+      this.entities[id].render(ctx);
     }
     if (this.controller.isPressed("KeyF")) {
       ctx.fillStyle = "gray";
@@ -119,7 +131,7 @@ export class Game {
     height: number,
     color: string
   ) {
-    this.platforms[id] = new Platform(
+    this.entities[id] = new Platform(
       id,
       pos,
       width == 0 ? 1 : width,
@@ -129,7 +141,7 @@ export class Game {
   }
 
   removePlatform(id: string) {
-    delete this.platforms[id];
+    delete this.entities[id];
   }
 
   resizeEvent() {
