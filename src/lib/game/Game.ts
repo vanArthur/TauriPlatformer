@@ -29,35 +29,46 @@ export class Game {
 
   init() {
     appWindow.setTitle("Tauri Platformer");
-
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
     this.resizeEvent();
-    window.addEventListener("resize", () => {
-      this.resizeEvent();
+    this.loadLevel();
+    this.startListeners();
+    this.gameLoop(0);
+  }
+
+  gameLoop(time: number) {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    this.deltaTime = (time - this.lastTime) / 1000;
+
+    this.update(this.deltaTime);
+    this.render(this.ctx);
+
+    requestAnimationFrame((time) => {
+      this.gameLoop(time);
     });
 
+    this.lastTime = time;
+  }
+
+  loadLevel() {
     this.addPlatform(randomId(), new Vec2(0, 600), 200, 20, "green");
     this.addPlatform(randomId(), new Vec2(200, 500), 150, 10, "green");
+    this.addPlatform(randomId(), new Vec2(144, 542), 140, 25, "red");
     this.addPlatform(
-      randomId(),
-      new Vec2(144.76666259765625, 542),
-      140,
-      25,
-      "red"
-    );
-    this.addPlatform(
-      randomId(),
+      "ground",
       new Vec2(0, this.canvas.height - 20),
       this.canvas.width,
       20,
       "brown"
     );
     this.entities["flag"] = new Flag("flag", new Vec2(200, 200));
+  }
 
-    this.gameLoop(0);
+  startListeners() {
+    window.addEventListener("resize", () => {
+      this.resizeEvent();
+    });
 
-    //++++++++++++++++++++++++
     const onDown = (() => {
       this.addPlatform(
         "temp",
@@ -95,11 +106,11 @@ export class Game {
       const randId = randomId();
       this.addPlatform(randId, pfPos, pfW, pfH, "green");
     }).bind(this);
-    //++++++++++++++++++++++++
+
     this.controller.addDoOn("mousedown", onDown);
     this.controller.addDoOn("mousemove", onMove);
     this.controller.addDoOn("mouseup", onUp);
-    this.controller.addDoOn("keydown", (e) => {
+    this.controller.addDoOn("keydown", (e: KeyboardEvent) => {
       if (this.controller.isPressed("MetaLeft")) {
         if (e.code == "KeyA") {
           appWindow.close();
@@ -147,20 +158,5 @@ export class Game {
   resizeEvent() {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
-  }
-
-  gameLoop(time: number) {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    this.deltaTime = (time - this.lastTime) / 1000;
-
-    this.update(this.deltaTime);
-    this.render(this.ctx);
-
-    requestAnimationFrame((time) => {
-      this.gameLoop(time);
-    });
-
-    this.lastTime = time;
   }
 }
