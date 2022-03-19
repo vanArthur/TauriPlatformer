@@ -1,21 +1,21 @@
 import { Vec2 } from "../helperFunctions/vector.js";
 import Entity from "./Entity.js";
-import { randomId } from "../helperFunctions/randomId.js";
 import { Rectangle } from "../helperFunctions/shapes.js";
 import { Controller } from "../Controller.js";
+import { Platform } from "./Platform.js";
 
 export class Player extends Entity {
   controller: Controller;
   jumping: boolean;
   speed: number;
-  constructor(pos: Vec2, color: string, controller: Controller) {
-    super(randomId(), pos, new Rectangle(0, 0, 20, 50, color));
+  constructor(id: string, pos: Vec2, color: string, controller: Controller) {
+    super(id, pos, new Rectangle(0, 0, 20, 50, color), true);
     this.controller = controller;
     this.jumping = false;
     this.speed = 50;
   }
 
-  movement(deltaTime: number, platforms: any) {
+  movement(deltaTime: number, entities: any) {
     let pressing = false;
     if (this.controller.isPressed("KeyA")) {
       pressing = true;
@@ -36,6 +36,6 @@ export class Player extends Entity {
       }
     }
 
-    this.move(deltaTime, platforms);
+    this.move(deltaTime, entities);
   }
 }

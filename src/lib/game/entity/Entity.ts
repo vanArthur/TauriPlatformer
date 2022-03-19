@@ -1,15 +1,8 @@
 import { drawShape } from "../helperFunctions/canvas.js";
 import { Vec2 } from "../helperFunctions/vector.js";
-import {
-  cubeCollision,
-  CubeRayCollisionLeft,
-  CubeRayCollisionRight,
-} from "../helperFunctions/collision.js";
 import { Line, Shape } from "../helperFunctions/shapes.js";
-import { Platform } from "./Platform.js";
-import { exit } from "@tauri-apps/api/process";
 import { distBetweenPoints } from "../helperFunctions/math.js";
-import { platform } from "@tauri-apps/api/os";
+import { Flag } from "./Flag.js";
 
 export default class Entity {
   pos: Vec2;
@@ -21,7 +14,15 @@ export default class Entity {
   collider: any;
   friction: number;
   shapes: any;
-  constructor(id: string, pos: Vec2, shape: Shape | Shape[]) {
+  noOverlap: boolean;
+  colliders: { [id: string]: Entity };
+
+  constructor(
+    id: string,
+    pos: Vec2,
+    shape: Shape | Shape[],
+    noOverLap: boolean
+  ) {
     this.pos = new Vec2(pos.x, pos.y);
     this.vel = new Vec2();
     this.acc = new Vec2();
@@ -30,6 +31,8 @@ export default class Entity {
     this.gravity = 9.81;
     this.collider = undefined;
     this.friction = 7;
+    this.noOverlap = noOverLap;
+    this.colliders = {};
     if (Array.isArray(shape)) {
       this.shapes = shape;
     } else {
@@ -46,10 +49,10 @@ export default class Entity {
       this.collider.pos = this.pos;
       return this.collider;
     }
-    return undefined
+    return undefined;
   }
 
-  move(deltaTime: number, colliders: any): void {
+  move(deltaTime: number, entities: any): void {
     const wasleft = this.vel.x < 0;
     const wasright = this.vel.x > 0;
 
@@ -68,8 +71,13 @@ export default class Entity {
     this.acc.y = 0;
 
     let col;
-    if (colliders != undefined) {
-      col = this.rectangleCollision(colliders);
+    if (entities != undefined) {
+      col = this.rectangleCollision(entities);
+    }
+    if (Object.keys(this.colliders).length > 0) {
+      for (let entity in this.colliders) {
+        this.pos.add(this.colliders[entity].vel);
+      }
     }
 
     this.pos.add(this.vel);
@@ -94,12 +102,15 @@ export default class Entity {
     this.vel = new Vec2(0, 0);
   }
 
-
-
-  rectangleCollision(rects: { [id: string]: any }): { [id: string]: boolean } {
+  rectangleCollision(rects: { [id: string]: Entity }): {
+    [id: string]: boolean;
+  } {
     let vcol = false;
     let hcol = false;
+    let currentColliders: { [id: string]: Entity } = {};
     for (var i in rects) {
+      let hColEntity;
+      let vColEntity;
       let rect: any = rects[i].getCollider();
       if (rect == undefined) continue;
 
@@ -110,23 +121,9 @@ export default class Entity {
           this.shapes[0].height / 2 + rect.height / 2
         )
       ) {
-        if (this.vel.x >= 0) {
-          let xdist = distBetweenPoints(0, this.getRight(), 0, rect.pos.x);
-          if (this.vel.x > xdist) {
-            this.vel.x = xdist - .1;
-            hcol = true;
-          }
-        } else if (this.vel.x < 0) {
-          let xdist = distBetweenPoints(
-            0,
-            this.getLeft(),
-            0,
-            rect.pos.x + rect.width
-          );
-          if (-this.vel.x > xdist) {
-            this.vel.x = -xdist + .1;
-            hcol = true;
-          }
+        hColEntity = rects[i];
+        if (rects[i].noOverlap) {
+          hcol = this.stopH(rect, hcol);
         }
       }
       // vert collision
@@ -136,28 +133,61 @@ export default class Entity {
           this.shapes[0].width / 2 + rect.width / 2
         )
       ) {
-        if (this.vel.y >= 0) {
-          let ydist = distBetweenPoints(0, this.getBottom(), 0, rect.pos.y);
-          if (this.vel.y > ydist) {
-            this.vel.y = ydist;
-            this.grounded = true;
-            vcol = true;
-          }
-        } else if (this.vel.y < 0) {
-          let ydist = distBetweenPoints(
-            0,
-            this.getTop(),
-            0,
-            rect.pos.y + rect.height
-          );
-          if (-this.vel.y > ydist) {
-            this.vel.y = -ydist;
-            vcol = true;
-          }
+        vColEntity = rects[i];
+        if (rects[i].noOverlap) {
+          vcol = this.stopV(rect, vcol);
         }
       }
+      if (hColEntity != undefined && hColEntity == vColEntity) {
+        if (vColEntity != this) currentColliders[vColEntity.id] = vColEntity;
+      }
     }
+    this.colliders = currentColliders;
     return { vcol: vcol, hcol: hcol };
+  }
+  private stopH(rect: any, hcol: boolean) {
+    if (this.vel.x >= 0) {
+      let xdist = distBetweenPoints(0, this.getRight(), 0, rect.pos.x);
+      if (this.vel.x > xdist) {
+        this.vel.x = xdist - 0.1;
+        hcol = true;
+      }
+    } else if (this.vel.x < 0) {
+      let xdist = distBetweenPoints(
+        0,
+        this.getLeft(),
+        0,
+        rect.pos.x + rect.width
+      );
+      if (-this.vel.x > xdist) {
+        this.vel.x = -xdist + 0.1;
+        hcol = true;
+      }
+    }
+    return hcol;
+  }
+
+  private stopV(rect: any, vcol: boolean) {
+    if (this.vel.y >= 0) {
+      let ydist = distBetweenPoints(0, this.getBottom(), 0, rect.pos.y);
+      if (this.vel.y > ydist) {
+        this.vel.y = ydist;
+        this.grounded = true;
+        vcol = true;
+      }
+    } else if (this.vel.y < 0) {
+      let ydist = distBetweenPoints(
+        0,
+        this.getTop(),
+        0,
+        rect.pos.y + rect.height
+      );
+      if (-this.vel.y > ydist) {
+        this.vel.y = -ydist;
+        vcol = true;
+      }
+    }
+    return vcol;
   }
   getLeft(): number {
     return this.pos.x;
