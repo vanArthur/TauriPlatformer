@@ -18,14 +18,7 @@ export class Game {
 
   constructor(canvas: HTMLCanvasElement) {
     this.controller = new Controller(document);
-    this.controller.addKeys([
-      "KeyA",
-      "KeyD",
-      "Space",
-      "KeyF",
-      "MetaLeft",
-      "KeyR",
-    ]);
+    this.controller.addKeys(["KeyA", "KeyD", "Space", "KeyF", "MetaLeft"]);
     this.ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
     this.player = new Player(
       "Player",
@@ -76,8 +69,6 @@ export class Game {
     if (greenPF.pos.x < 1) greenPF.vel.x *= -1;
 
     greenPF.move(deltaTime, this.entities);
-
-    if (this.controller.isPressed("KeyR")) this.restart();
   }
 
   restart() {
@@ -97,7 +88,7 @@ export class Game {
     for (var id in this.entities) {
       id != "Flag" && this.entities[id].render(ctx);
     }
-    this.entities["Flag"].render(ctx);
+    this.entities["Flag"] && this.entities["Flag"].render(ctx);
   }
 
   async loadLevel(level: number) {
@@ -107,6 +98,13 @@ export class Game {
       new Vec2(50, 50),
       "black",
       this.controller
+    );
+    this.entities["Flag"] = new Flag(
+      "Flag",
+      new Vec2(
+        Math.random() * this.canvas.width * 0.8 + 10,
+        Math.random() * this.canvas.height * 0.8 + 10
+      )
     );
 
     for (let i = 0; i < Math.random() * 20 + 10; i++) {
@@ -121,6 +119,11 @@ export class Game {
         "orange"
       );
     }
+    for (var id in this.entities) {
+      this.entities[id].rectangleCollision(this.entities);
+      if (Object.keys(this.entities[id].colliders).length > 0)
+        delete this.entities[id];
+    }
 
     this.addPlatform("GreenPF", new Vec2(200, 500), 150, 10, "green");
     this.entities["GreenPF"].friction = 0;
@@ -132,13 +135,6 @@ export class Game {
       this.canvas.width,
       20,
       "brown"
-    );
-    this.entities["Flag"] = new Flag(
-      "Flag",
-      new Vec2(
-        Math.random() * this.canvas.width * 0.8 + 10,
-        Math.random() * this.canvas.height * 0.8 + 10
-      )
     );
     setInterval(() => {
       return Promise;
@@ -197,6 +193,9 @@ export class Game {
         if (e.code == "KeyA") {
           appWindow.close();
         }
+      }
+      if (e.code == "KeyR") {
+        this.restart();
       }
     });
   }
