@@ -9,9 +9,12 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@tauri-apps/api": "^1.0.0-rc.1",
+    "@mantine/core": "^4.0.8",
+    "@mantine/hooks": "^4.0.8",
+    "@tauri-apps/api": "^1.0.0-rc.2",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "tauri-settings": "^0.1.2"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.0.0-rc.5",
