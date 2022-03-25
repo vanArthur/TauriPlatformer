@@ -54,7 +54,7 @@
     },
     "windows": [
       {
-        "title": "Loading Tauri Platformer",
+        "title": "Tauri Platformer",
         "width": 800,
         "height": 600,
         "resizable": true,
