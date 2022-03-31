@@ -1,8 +1,6 @@
 import { Vec2 } from "../helperFunctions/vector.js";
 import Entity from "./Entity.js";
 import { Rectangle } from "../helperFunctions/shapes.js";
-import { Controller } from "../Controller.js";
-import { Platform } from "./Platform.js";
 import { Game } from "../Game.js";
 
 export class Player extends Entity {

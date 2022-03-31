@@ -2,7 +2,6 @@ import { drawShape } from "../helperFunctions/canvas.js";
 import { Vec2 } from "../helperFunctions/vector.js";
 import { Line, Shape } from "../helperFunctions/shapes.js";
 import { distBetweenPoints } from "../helperFunctions/math.js";
-import { Flag } from "./Flag.js";
 import { Game } from "../Game.js";
 
 export default class Entity {

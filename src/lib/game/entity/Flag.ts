@@ -13,12 +13,4 @@ export class Flag extends Entity {
     super(id, pos, shapes, false, game);
     this.setCollider(new Rectangle(0, 0, 30, 50, "green"));
   }
-  export() {
-    let pf = {
-      id: this.id,
-      pos: JSON.stringify(this.pos),
-      shapes: this.shapes,
-    };
-    console.log(pf);
-  }
 }

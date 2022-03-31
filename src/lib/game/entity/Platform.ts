@@ -17,13 +17,4 @@ export class Platform extends Entity {
   }
 
   update() {}
-
-  export() {
-    let pf = {
-      id: this.id,
-      pos: this.pos,
-      shapes: this.shapes,
-    };
-    console.log(pf);
-  }
 }
