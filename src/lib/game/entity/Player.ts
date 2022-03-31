@@ -3,39 +3,44 @@ import Entity from "./Entity.js";
 import { Rectangle } from "../helperFunctions/shapes.js";
 import { Controller } from "../Controller.js";
 import { Platform } from "./Platform.js";
+import { Game } from "../Game.js";
 
 export class Player extends Entity {
-  controller: Controller;
   jumping: boolean;
   speed: number;
-  constructor(id: string, pos: Vec2, color: string, controller: Controller) {
-    super(id, pos, new Rectangle(0, 0, 20, 50, color), true);
-    this.controller = controller;
+  constructor(id: string, pos: Vec2, color: string, game: Game) {
+    super(id, pos, new Rectangle(0, 0, 20, 50, color), true, game);
     this.jumping = false;
     this.speed = 50;
   }
 
-  movement(deltaTime: number, entities: any) {
+  update() {
+    this.movement();
+    this.isCollidingWith("Flag") && this.game.LevelLoader.nextLevel();
+  }
+
+  movement() {
     let pressing = false;
-    if (this.controller.isPressed("KeyA")) {
+    let game = this.game;
+    if (game.controller.isPressed("KeyA")) {
       pressing = true;
-      this.acc.x = -this.speed * deltaTime;
+      this.acc.x = -this.speed * game.deltaTime;
     }
-    if (this.controller.isPressed("KeyD")) {
+    if (game.controller.isPressed("KeyD")) {
       pressing = true;
-      this.acc.x = this.speed * deltaTime;
+      this.acc.x = this.speed * game.deltaTime;
     }
     if (!pressing) {
       this.acc.x = 0;
     }
 
-    if (this.controller.isPressed("Space")) {
+    if (game.controller.isPressed("Space")) {
       if (this.grounded) {
-        this.acc.y -= this.speed * 6 * deltaTime;
+        this.acc.y -= this.speed * 6 * game.deltaTime;
         this.grounded = false;
       }
     }
 
-    this.move(deltaTime, entities);
+    this.move();
   }
 }

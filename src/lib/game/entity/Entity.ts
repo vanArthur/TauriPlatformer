@@ -3,6 +3,7 @@ import { Vec2 } from "../helperFunctions/vector.js";
 import { Line, Shape } from "../helperFunctions/shapes.js";
 import { distBetweenPoints } from "../helperFunctions/math.js";
 import { Flag } from "./Flag.js";
+import { Game } from "../Game.js";
 
 export default class Entity {
   pos: Vec2;
@@ -16,13 +17,16 @@ export default class Entity {
   shapes: any;
   noOverlap: boolean;
   colliders: { [id: string]: Entity };
+  game: Game;
 
   constructor(
     id: string,
     pos: Vec2,
     shape: Shape | Shape[],
-    noOverLap: boolean
+    noOverLap: boolean,
+    game: Game
   ) {
+    this.game = game;
     this.pos = new Vec2(pos.x, pos.y);
     this.vel = new Vec2();
     this.acc = new Vec2();
@@ -52,7 +56,16 @@ export default class Entity {
     return undefined;
   }
 
-  move(deltaTime: number, entities: any): void {
+  isCollidingWith(id: string) {
+    return this.colliders[id] != undefined ? this.colliders[id] : undefined;
+  }
+
+  update() {}
+
+  move(): void {
+    const deltaTime = this.game.deltaTime;
+    const entities = this.game.entities;
+
     const wasleft = this.vel.x < 0;
     const wasright = this.vel.x > 0;
 
