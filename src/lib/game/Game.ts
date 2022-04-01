@@ -55,6 +55,10 @@ export class Game {
   update() {
     this.player.update();
     this.entities["GreenPF"].update();
+
+    for (let id in this.entities) {
+      this.entities[id].update();
+    }
   }
 
   restart() {
