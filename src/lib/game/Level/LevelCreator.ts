@@ -20,7 +20,8 @@ export default class LevelCreator {
     );
   }
 
-  addFloor(pos: Vec2, width: number, height: number, color: string) {
+  addFloor(pos: Vec2, width: number, height: number, color?: string) {
+    color = color == undefined ? "green" : color;
     this.game.addPlatform(
       `floor_${randomId()}`,
       pos,
