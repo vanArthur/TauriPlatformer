@@ -5,7 +5,8 @@ import { Player } from "./entity/Player.js";
 import { randomId } from "./helperFunctions/randomId.js";
 import { appWindow } from "@tauri-apps/api/window";
 import { text } from "./helperFunctions/canvas.js";
-import LevelLoader from "./LevelLoader.js";
+import LevelLoader from "./Level/LevelLoader.js";
+import LevelCreator from "./Level/LevelCreator.js";
 
 export class Game {
   controller: Controller;
@@ -17,6 +18,7 @@ export class Game {
   lastTime: number = 0;
   pauzed: boolean = false;
   LevelLoader: LevelLoader = new LevelLoader(this);
+  LevelCreator: LevelCreator = new LevelCreator(this);
 
   constructor(canvas: HTMLCanvasElement) {
     this.controller = new Controller(document);
@@ -65,15 +67,10 @@ export class Game {
 
   render(ctx: CanvasRenderingContext2D) {
     this.player.render(ctx);
-    text(
-      ctx,
-      10,
-      30,
-      30,
-      `30px Arial`,
-      this.LevelLoader.getLevel().toString(),
-      "black"
-    );
+    const fps = (1000 / this.deltaTime).toString();
+    const currentLevel = this.LevelLoader.getLevel().toString();
+    text(ctx, this.canvas.width - 50, 30, 30, `30px Arial`, fps, "black");
+    text(ctx, 10, 30, 30, `30px Arial`, currentLevel, "black");
     for (var id in this.entities) {
       id != "Flag" && this.entities[id].render(ctx);
     }
@@ -91,7 +88,9 @@ export class Game {
         this.controller.mouseDownPos!,
         this.controller.mouseUpPos!.x - this.controller.mouseDownPos!.x,
         this.controller.mouseUpPos!.y - this.controller.mouseDownPos!.y,
-        "red"
+        "red",
+        false,
+        false
       );
     }).bind(this);
 
@@ -120,7 +119,7 @@ export class Game {
       }
 
       const randId = randomId();
-      this.addPlatform(randId, pfPos, pfW, pfH, "green");
+      this.addPlatform(randId, pfPos, pfW, pfH, "green", false, true);
     }).bind(this);
 
     this.controller.addDoOn("mousedown", onDown);
@@ -137,6 +136,7 @@ export class Game {
       }
       if (e.code == "Escape") {
         this.pauzed = !this.pauzed;
+        console.log(this);
       }
     });
   }
@@ -146,7 +146,9 @@ export class Game {
     pos: Vec2,
     width: number,
     height: number,
-    color: string
+    color: string,
+    deadly: boolean,
+    collision: boolean
   ) {
     this.entities[id] = new Platform(
       id,
@@ -156,6 +158,10 @@ export class Game {
       color,
       this
     );
+    this.entities[id].deadly = deadly;
+    this.entities[id].noOverlap = collision;
+
+    return this.entities[id];
   }
 
   removeEntity(id: string) {

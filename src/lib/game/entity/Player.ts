@@ -6,6 +6,7 @@ import { Game } from "../Game.js";
 export class Player extends Entity {
   jumping: boolean;
   speed: number;
+  lives: number = 3;
   constructor(id: string, pos: Vec2, color: string, game: Game) {
     super(id, pos, new Rectangle(0, 0, 20, 50, color), true, game);
     this.jumping = false;
@@ -14,7 +15,15 @@ export class Player extends Entity {
 
   update() {
     this.movement();
-    this.isCollidingWith("Flag") && this.game.LevelLoader.nextLevel();
+    for (var id in this.colliders) {
+      if (id == "Flag") this.game.LevelLoader.nextLevel();
+      if (this.game.entities[id].deadly) {
+        this.friction *= 5;
+        setTimeout(() => {
+          this.game.LevelLoader.restart();
+        }, 1000);
+      }
+    }
   }
 
   movement() {

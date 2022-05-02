@@ -4,6 +4,7 @@ import { Vec2 } from "../helperFunctions/vector.js";
 import { Game } from "../Game.js";
 
 export class Platform extends Entity {
+  deadly: boolean = false;
   constructor(
     id: string,
     pos: Vec2,

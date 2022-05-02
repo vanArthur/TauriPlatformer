@@ -6,16 +6,16 @@ import { Game } from "../Game.js";
 
 export default class Entity {
   pos: Vec2;
-  vel: Vec2;
-  acc: Vec2;
-  grounded: boolean;
+  vel: Vec2 = new Vec2();
+  acc: Vec2 = new Vec2();
+  grounded: boolean = false;
   id: string;
-  gravity: number;
-  collider: any;
-  friction: number;
+  gravity: number = 9.81;
+  collider: any = undefined;
+  friction: number = 7;
   shapes: any;
   noOverlap: boolean;
-  colliders: { [id: string]: Entity };
+  colliders: { [id: string]: Entity } = {};
   game: Game;
 
   constructor(
@@ -27,15 +27,8 @@ export default class Entity {
   ) {
     this.game = game;
     this.pos = new Vec2(pos.x, pos.y);
-    this.vel = new Vec2();
-    this.acc = new Vec2();
-    this.grounded = false;
     this.id = id;
-    this.gravity = 9.81;
-    this.collider = undefined;
-    this.friction = 7;
     this.noOverlap = noOverLap;
-    this.colliders = {};
     if (Array.isArray(shape)) {
       this.shapes = shape;
     } else {
@@ -45,6 +38,9 @@ export default class Entity {
 
   setCollider(shape: any) {
     this.collider = shape;
+  }
+  setOverLap(bool: boolean) {
+    this.noOverlap = bool;
   }
 
   getCollider(): any {
