@@ -7,11 +7,12 @@ import { appWindow } from "@tauri-apps/api/window";
 import { text } from "./helperFunctions/canvas.js";
 import LevelLoader from "./Level/LevelLoader.js";
 import LevelCreator from "./Level/LevelCreator.js";
+import Entity from "./entity/Entity.js";
 
 export class Game {
   controller: Controller;
   player: Player;
-  entities: { [id: string]: any } = {};
+  entities: { [id: string]: Entity } = {};
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   deltaTime: number = 0;
@@ -163,7 +164,7 @@ export class Game {
       )
     );
     this.entities[id].deadly = deadly;
-    this.entities[id].noOverlap = collision;
+    this.entities[id].passThrough = collision;
 
     return this.entities[id];
   }
@@ -180,7 +181,7 @@ export class Game {
   }
 
   sortEntitiesByZIndex() {
-    let entitiesDict = Object.keys(this.entities).map((key) => {
+    let entitiesDict: any[] = Object.keys(this.entities).map((key) => {
       return [key, this.entities[key]];
     });
 

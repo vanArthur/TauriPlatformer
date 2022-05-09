@@ -4,6 +4,7 @@ import { Player } from "../entity/Player";
 import { Game } from "../Game";
 import { Vec2 } from "../helperFunctions/vector";
 import { Platform } from "../entity/Platform";
+import LevelCreator from "./LevelCreator";
 
 export default class LevelLoader {
   currentLevel: number;
@@ -32,7 +33,9 @@ export default class LevelLoader {
     this.game.entities = {};
   }
 
-  loadLevel(level: number = this.currentLevel) {
+  loadLevel(lvl?: number) {
+    const level = typeof lvl === "undefined" ? this.currentLevel : lvl;
+
     console.log("Loading level...", level);
     const levelCreator = this.game.LevelCreator;
 
@@ -40,46 +43,75 @@ export default class LevelLoader {
     const screenWidth = this.game.canvas.width;
     const screenHeight = this.game.canvas.height;
 
-    this.game.player = new Player(
-      "Player",
-      new Vec2(100, 100),
-      "black",
-      this.game
-    );
-    levelCreator.addFloor(
-      new Vec2(-5, screenHeight - 10),
-      screenWidth + 10,
-      10,
-      "brown"
-    );
-
-    levelCreator.addFloor(
-      new Vec2(-5, screenHeight - 14),
-      screenWidth + 10,
-      4,
-      "green"
-    );
-
-    levelCreator.addLava(
-      new Vec2(200, screenHeight - 14 - 2 * this.game.player.shapes[0].height),
-      100,
-      14,
-      1
-    );
-
-    this.game.addPlatform(
-      "door",
-      new Vec2(100, screenHeight - 60),
-      10,
-      40,
-      "red",
-      false,
-      false,
-      5
-    );
-
-    levelCreator.addFlag(new Vec2(300, screenHeight - 200), 10);
+    this.EntitySpawner(level, levelCreator, screenHeight, screenWidth);
 
     return;
+  }
+
+  private EntitySpawner(
+    level: number,
+    levelCreator: LevelCreator,
+    screenHeight: number,
+    screenWidth: number
+  ) {
+    switch (level) {
+      case 1: {
+        this.game.player = new Player(
+          "Player",
+          new Vec2(100, 100),
+          "black",
+          this.game
+        );
+        levelCreator.addFloor(
+          new Vec2(-5, screenHeight - 10),
+          screenWidth + 10,
+          10,
+          "brown"
+        );
+
+        levelCreator.addFloor(
+          new Vec2(-5, screenHeight - 14),
+          screenWidth + 10,
+          4,
+          "green"
+        );
+
+        levelCreator.addLava(
+          new Vec2(
+            200,
+            screenHeight - 14 - 2 * this.game.player.shapes[0].height
+          ),
+          100,
+          14,
+          1
+        );
+
+        levelCreator.addDoor(new Vec2(712, 518), 27, 68, 1.1, 11);
+
+        levelCreator.addFlag(new Vec2(300, screenHeight - 200), 10);
+        return;
+      }
+      case 1.1: {
+        this.game.player = new Player(
+          "Player",
+          new Vec2(100, 100),
+          "black",
+          this.game
+        );
+        levelCreator.addFloor(
+          new Vec2(-5, screenHeight - 10),
+          screenWidth + 10,
+          10,
+          "brown"
+        );
+
+        levelCreator.addFloor(
+          new Vec2(-5, screenHeight - 14),
+          screenWidth + 10,
+          4,
+          "green"
+        );
+      }
+    }
   }
 }

@@ -16,16 +16,18 @@ export default class Entity {
   collider: any = undefined;
   friction: number = 7;
   shapes: any;
-  noOverlap: boolean;
+  passThrough: boolean;
   colliders: { [id: string]: Entity } = {};
   game: Game;
+  deadly: boolean = false;
+  props: any;
 
   constructor(
     id: string,
     type: string,
     pos: Vec2,
     shape: Shape | Shape[],
-    noOverLap: boolean,
+    passThrough: boolean,
     game: Game,
     zIndex?: number
   ) {
@@ -33,7 +35,7 @@ export default class Entity {
     this.pos = new Vec2(pos.x, pos.y);
     this.id = id;
     this.type = type;
-    this.noOverlap = noOverLap;
+    this.passThrough = passThrough;
     this.zIndex = typeof zIndex === "undefined" ? 1 : zIndex;
     if (Array.isArray(shape)) {
       this.shapes = shape;
@@ -45,8 +47,8 @@ export default class Entity {
   setCollider(shape: any) {
     this.collider = shape;
   }
-  setOverLap(bool: boolean) {
-    this.noOverlap = bool;
+  setPassThrough(bool: boolean) {
+    this.passThrough = bool;
   }
 
   getCollider(): any {
@@ -136,7 +138,7 @@ export default class Entity {
         )
       ) {
         hColEntity = rects[i];
-        if (rects[i].noOverlap) {
+        if (rects[i].passThrough) {
           hcol = this.stopH(rect, hcol);
         }
       }
@@ -148,7 +150,7 @@ export default class Entity {
         )
       ) {
         vColEntity = rects[i];
-        if (rects[i].noOverlap) {
+        if (rects[i].passThrough) {
           vcol = this.stopV(rect, vcol);
         }
       }

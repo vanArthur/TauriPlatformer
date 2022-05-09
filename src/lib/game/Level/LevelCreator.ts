@@ -1,3 +1,4 @@
+import { Door } from "../entity/Door";
 import { Flag } from "../entity/Flag";
 import { Game } from "../Game";
 import { randomId } from "../helperFunctions/randomId";
@@ -44,5 +45,27 @@ export default class LevelCreator {
   addFlag(pos: Vec2, zIndex: number) {
     const id = `flag_${randomId()}`;
     this.game.addEntity(id, new Flag(id, pos, this.game, zIndex));
+  }
+
+  addDoor(
+    pos: Vec2,
+    width: number,
+    height: number,
+    levelToLoad: number,
+    zIndex?: number
+  ) {
+    const id = `door_${randomId()}`;
+    this.game.addEntity(
+      id,
+      new Door(
+        id,
+        pos,
+        width,
+        height,
+        this.game,
+        typeof zIndex === "undefined" ? 1 : zIndex,
+        levelToLoad
+      )
+    );
   }
 }
