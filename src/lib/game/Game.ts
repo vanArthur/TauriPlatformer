@@ -11,7 +11,7 @@ import LevelCreator from "./Level/LevelCreator.js";
 export class Game {
   controller: Controller;
   player: Player;
-  entities: { [id: string]: Platform } = {};
+  entities: { [id: string]: any } = {};
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   deltaTime: number = 0;
@@ -31,7 +31,7 @@ export class Game {
   async init() {
     appWindow.setTitle("Tauri Platformer");
     this.resizeEvent();
-    await this.LevelLoader.loadLevel(1);
+    this.LevelLoader.loadLevel(1);
     this.startListeners();
     this.gameLoop(0);
   }
@@ -72,9 +72,8 @@ export class Game {
     text(ctx, this.canvas.width - 50, 30, 30, `30px Arial`, fps, "black");
     text(ctx, 10, 30, 30, `30px Arial`, currentLevel, "black");
     for (var id in this.entities) {
-      id != "Flag" && this.entities[id].render(ctx);
+      this.entities[id].render(ctx);
     }
-    this.entities["Flag"] && this.entities["Flag"].render(ctx);
   }
 
   startListeners() {
@@ -148,15 +147,20 @@ export class Game {
     height: number,
     color: string,
     deadly: boolean,
-    collision: boolean
+    collision: boolean,
+    zIndex?: number
   ) {
-    this.entities[id] = new Platform(
+    this.addEntity(
       id,
-      pos,
-      width == 0 ? 1 : width,
-      height == 0 ? 1 : height,
-      color,
-      this
+      new Platform(
+        id,
+        pos,
+        width === 0 ? 1 : width,
+        height === 0 ? 1 : height,
+        color,
+        this,
+        typeof zIndex === "undefined" ? 1 : zIndex
+      )
     );
     this.entities[id].deadly = deadly;
     this.entities[id].noOverlap = collision;
@@ -166,6 +170,34 @@ export class Game {
 
   removeEntity(id: string) {
     delete this.entities[id];
+  }
+
+  addEntity(id: string, entity: any) {
+    if (this.entities[id] === undefined) {
+      this.entities[id] = entity;
+    }
+    this.sortEntitiesByZIndex();
+  }
+
+  sortEntitiesByZIndex() {
+    let entitiesDict = Object.keys(this.entities).map((key) => {
+      return [key, this.entities[key]];
+    });
+
+    entitiesDict.sort((entity1, entity2) => {
+      return entity2[1].zIndex - entity1[1].zIndex;
+    });
+
+    const keys = entitiesDict.map((e) => {
+      return e[0];
+    });
+
+    let newDict: { [id: string]: any } = {};
+    for (var i = keys.length - 1; i >= 0; i--) {
+      newDict[keys[i]] = this.entities[keys[i]];
+    }
+
+    this.entities = newDict;
   }
 
   resizeEvent() {

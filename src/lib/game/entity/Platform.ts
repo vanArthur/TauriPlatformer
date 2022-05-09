@@ -16,6 +16,7 @@ export class Platform extends Entity {
   ) {
     super(
       id,
+      "Platform",
       pos,
       new Rectangle(0, 0, width, height, color),
       true,

@@ -8,7 +8,7 @@ export class Player extends Entity {
   speed: number;
   lives: number = 3;
   constructor(id: string, pos: Vec2, color: string, game: Game) {
-    super(id, pos, new Rectangle(0, 0, 20, 50, color), true, game);
+    super(id, "Player", pos, new Rectangle(0, 0, 20, 50, color), true, game);
     this.jumping = false;
     this.speed = 50;
   }

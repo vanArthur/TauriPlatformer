@@ -5,13 +5,13 @@ import { Game } from "../Game.js";
 
 export class Flag extends Entity {
   posOffSet: number;
-  constructor(id: string, pos: Vec2, game: Game) {
+  constructor(id: string, pos: Vec2, game: Game, zIndex: number) {
     const shapes = [
       new Rectangle(0, 0, 5, 50, "green"),
       new Rectangle(0, 0, 30, 20, "green"),
     ];
 
-    super(id, pos, shapes, false, game);
+    super(id, "Flag", pos, shapes, false, game, zIndex);
     this.setCollider(new Rectangle(0, 0, 30, 50, "green"));
     this.posOffSet = 0;
     this.gravity = 0;

@@ -5,6 +5,8 @@ import { distBetweenPoints } from "../helperFunctions/math.js";
 import { Game } from "../Game.js";
 
 export default class Entity {
+  type: string = "Entity";
+  zIndex: number = 1;
   pos: Vec2;
   vel: Vec2 = new Vec2();
   acc: Vec2 = new Vec2();
@@ -20,15 +22,19 @@ export default class Entity {
 
   constructor(
     id: string,
+    type: string,
     pos: Vec2,
     shape: Shape | Shape[],
     noOverLap: boolean,
-    game: Game
+    game: Game,
+    zIndex?: number
   ) {
     this.game = game;
     this.pos = new Vec2(pos.x, pos.y);
     this.id = id;
+    this.type = type;
     this.noOverlap = noOverLap;
+    this.zIndex = typeof zIndex === "undefined" ? 1 : zIndex;
     if (Array.isArray(shape)) {
       this.shapes = shape;
     } else {
