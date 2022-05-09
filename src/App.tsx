@@ -28,6 +28,7 @@ function App() {
                 backgroundColor: "darkgray",
                 borderRadius: "10px",
                 padding: "7px 15px 7px 15px",
+                margin: "0px 0px 10px 0px",
               }}
               onClick={() => {
                 appWindow.setTitle("Loading Tauri Platformer");

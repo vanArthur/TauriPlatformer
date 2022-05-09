@@ -168,7 +168,7 @@ export default class Entity {
         rect.pos.x + rect.width
       );
       if (-this.vel.x > xdist) {
-        this.vel.x = -xdist + 0.1;
+        this.vel.x = -xdist + 0;
         hcol = true;
       }
     }

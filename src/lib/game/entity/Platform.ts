@@ -11,9 +11,17 @@ export class Platform extends Entity {
     width: number,
     height: number,
     color: string,
-    game: Game
+    game: Game,
+    zIndex: number
   ) {
-    super(id, pos, new Rectangle(0, 0, width, height, color), true, game);
+    super(
+      id,
+      pos,
+      new Rectangle(0, 0, width, height, color),
+      true,
+      game,
+      zIndex
+    );
     this.collider = new Rectangle(0, 0, width, height, color);
   }
 }

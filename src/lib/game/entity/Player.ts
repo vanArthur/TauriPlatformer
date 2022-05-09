@@ -16,12 +16,13 @@ export class Player extends Entity {
   update() {
     this.movement();
     for (var id in this.colliders) {
-      if (id == "Flag") this.game.LevelLoader.nextLevel();
-      if (this.game.entities[id].deadly) {
+      if (id.toLowerCase().startsWith("flag"))
+        this.game.LevelLoader.nextLevel();
+      if (this.game.entities[id]?.deadly) {
         this.friction *= 5;
         setTimeout(() => {
           this.game.LevelLoader.restart();
-        }, 1000);
+        }, 500);
       }
     }
   }
