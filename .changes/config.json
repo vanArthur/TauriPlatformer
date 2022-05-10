@@ -1,0 +1,57 @@
+{
+  "gitSiteUrl": "https://www.github.com/tauri-apps/tauri-action/",
+  "pkgManagers": {
+    "javascript": {
+      "version": true,
+      "getPublishedVersion": "npm view ${ pkgFile.pkg.name } version",
+      "prepublish": [
+        {
+          "command": "yarn",
+          "dryRunCommand": true
+        },
+        {
+          "command": "npm pack",
+          "dryRunCommand": true
+        }
+      ],
+      "publish": [
+        {
+          "command": "echo # Package Publish",
+          "dryRunCommand": "echo # Package Publish",
+          "pipe": true
+        },
+        {
+          "command": "npm publish --access public",
+          "dryRunCommand": "echo publish here",
+          "pipe": true
+        }
+      ]
+    }
+  },
+  "packages": {
+    "@tauri-apps/action-core": {
+      "path": "./packages/core",
+      "manager": "javascript",
+      "assets": [
+        {
+          "path": "./packages/core/tauri-apps-action-core-${ pkgFile.version }.tgz",
+          "name": "action-core-${ pkgFile.version }.tgz"
+        }
+      ]
+    },
+    "action": {
+      "path": "./packages/action",
+      "manager": "javascript",
+      "publish": [
+        "git tag v${ pkgFile.versionMajor } -f",
+        "git tag v${ pkgFile.versionMajor }.${ pkgFile.versionMinor } -f",
+        "git push --tags -f"
+      ],
+      "getPublishedVersion": "git tag -a -m \"v${ pkgFile.version }\" v${ pkgFile.version } 2>/dev/null || echo ${ pkgFile.version }",
+      "dependencies": [
+        "@tauri-apps/action-core"
+      ],
+      "assets": false
+    }
+  }
+}
