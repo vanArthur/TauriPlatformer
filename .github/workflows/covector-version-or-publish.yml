@@ -25,7 +25,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           command: "version-or-publish"
           createRelease: true
       - name: Create Pull Request With Versions Bumped
