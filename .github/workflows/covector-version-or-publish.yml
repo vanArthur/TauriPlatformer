@@ -1,8 +1,7 @@
 name: covector version or publish
 on:
   push:
-    branches:
-    - dev
+    branches: [main]
 
 jobs:
   covector:
@@ -15,7 +14,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
       - name: git config
         run: |
           git config --global user.name "${{ github.event.pusher.name }}"
@@ -27,7 +26,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          command: 'version-or-publish'
+          command: "version-or-publish"
           createRelease: true
       - name: Create Pull Request With Versions Bumped
         if: steps.covector.outputs.commandRan == 'version'
@@ -39,4 +38,3 @@ jobs:
           commit-message: "apply version updates"
           labels: "version updates"
           body: ${{ steps.covector.outputs.change }}
-
