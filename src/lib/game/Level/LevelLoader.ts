@@ -59,20 +59,22 @@ export default class LevelLoader {
         this.game.player = new Player(
           "Player",
           new Vec2(100, 100),
-          "black",
+          "#4287f5",
           this.game
         );
-        levelCreator.addFloor(
+        levelCreator.addRect(
           new Vec2(-5, screenHeight - 10),
           screenWidth + 10,
           10,
+          true,
           "brown"
         );
 
-        levelCreator.addFloor(
+        levelCreator.addRect(
           new Vec2(-5, screenHeight - 14),
           screenWidth + 10,
           4,
+          true,
           "green"
         );
 
@@ -86,30 +88,71 @@ export default class LevelLoader {
           1
         );
 
-        levelCreator.addDoor(new Vec2(712, 518), 27, 68, 1.1, 11);
+        levelCreator.addDoor(
+          new Vec2(screenWidth / 2, screenHeight - 14 - 68),
+          27,
+          68,
+          1.1,
+          11
+        );
 
-        levelCreator.addFlag(new Vec2(300, screenHeight - 200), 10);
         return;
       }
       case 1.1: {
         this.game.player = new Player(
           "Player",
           new Vec2(100, 100),
-          "black",
+          "#4287f5",
           this.game
         );
-        levelCreator.addFloor(
-          new Vec2(-5, screenHeight - 10),
-          screenWidth + 10,
-          10,
-          "brown"
+
+        levelCreator.addRect(
+          new Vec2(0, 0),
+          screenWidth,
+          screenHeight,
+          false,
+          "black",
+          0
         );
 
-        levelCreator.addFloor(
-          new Vec2(-5, screenHeight - 14),
-          screenWidth + 10,
-          4,
-          "green"
+        levelCreator.addRect(
+          new Vec2(0, 0),
+          100,
+          screenHeight,
+          true,
+          "#542a01",
+          1
+        );
+
+        levelCreator.addRect(
+          new Vec2(screenWidth - 100, 0),
+          100,
+          screenHeight,
+          true,
+          "#542a01",
+          1
+        );
+
+        levelCreator.addRect(
+          new Vec2(0, screenHeight - 100),
+          screenWidth,
+          100,
+          true,
+          "#542a01",
+          1
+        );
+
+        levelCreator.addDoor(
+          new Vec2(screenWidth - 150, screenHeight - 170),
+          30,
+          70,
+          1,
+          2
+        );
+
+        levelCreator.addFlag(
+          new Vec2((screenWidth * 2) / 3, (screenHeight * 2) / 3),
+          10
         );
       }
     }

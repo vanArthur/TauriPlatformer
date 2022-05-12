@@ -23,10 +23,11 @@ export default class LevelCreator {
     );
   }
 
-  addFloor(
+  addRect(
     pos: Vec2,
     width: number,
     height: number,
+    collision: boolean,
     color: string,
     zIndex?: number
   ) {
@@ -37,7 +38,7 @@ export default class LevelCreator {
       height,
       color,
       false,
-      true,
+      collision,
       typeof zIndex === "undefined" ? 1 : zIndex
     );
   }

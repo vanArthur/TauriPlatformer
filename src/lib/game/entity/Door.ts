@@ -27,7 +27,7 @@ export class Door extends Entity {
         (1 / 10) * width,
         false,
         "gray"
-      ),
+      )
     ];
 
     super(id, "Door", pos, shapes, false, game, zIndex);
@@ -35,11 +35,11 @@ export class Door extends Entity {
     this.gravity = 0;
 
     this.props = {
-      levelToLoad: levelToLoad,
+      levelToLoad: levelToLoad
     };
   }
 
   enter() {
-    this.game.LevelLoader.loadLevel(1.1);
+    this.game.LevelLoader.loadLevel(this.props.levelToLoad);
   }
 }

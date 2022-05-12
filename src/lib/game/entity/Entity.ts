@@ -118,7 +118,9 @@ export default class Entity {
     this.vel = new Vec2(0, 0);
   }
 
-  rectangleCollision(rects: { [id: string]: Entity }): {
+  rectangleCollision(rects: {
+    [id: string]: Entity;
+  }): {
     [id: string]: boolean;
   } {
     let vcol = false;
@@ -156,6 +158,7 @@ export default class Entity {
       }
       if (hColEntity != undefined && hColEntity == vColEntity) {
         if (vColEntity != this) currentColliders[vColEntity.id] = vColEntity;
+        if (hColEntity != this) currentColliders[hColEntity.id] = hColEntity;
       }
     }
     this.colliders = currentColliders;
@@ -180,6 +183,7 @@ export default class Entity {
         hcol = true;
       }
     }
+
     return hcol;
   }
 

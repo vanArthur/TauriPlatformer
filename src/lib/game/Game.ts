@@ -67,13 +67,25 @@ export class Game {
   }
 
   render(ctx: CanvasRenderingContext2D) {
-    this.player.render(ctx);
     const fps = (1000 / this.deltaTime).toString();
     const currentLevel = this.LevelLoader.getLevel().toString();
     text(ctx, this.canvas.width - 50, 30, 30, `30px Arial`, fps, "black");
     text(ctx, 10, 30, 30, `30px Arial`, currentLevel, "black");
+    let shouldRenderPlayer = true;
     for (var id in this.entities) {
-      this.entities[id].render(ctx);
+      const entity = this.entities[id];
+
+      if (entity.zIndex > this.player.zIndex) {
+        if (shouldRenderPlayer) {
+          this.player.render(ctx);
+          shouldRenderPlayer = true;
+        }
+      }
+
+      entity.render(ctx);
+    }
+    if (shouldRenderPlayer) {
+      this.player.render(ctx);
     }
   }
 
@@ -82,7 +94,7 @@ export class Game {
       this.resizeEvent();
     });
 
-    const onDown = (() => {
+    const onDown = () => {
       this.addPlatform(
         "temp",
         this.controller.mouseDownPos!,
@@ -92,18 +104,18 @@ export class Game {
         false,
         false
       );
-    }).bind(this);
+    };
 
-    const onMove = (() => {
+    const onMove = () => {
       if (this.entities["temp"] != undefined) {
         this.entities["temp"].shapes[0].width =
           this.controller.mousePos!.x - this.controller.mouseDownPos!.x;
         this.entities["temp"].shapes[0].height =
           this.controller.mousePos!.y - this.controller.mouseDownPos!.y;
       }
-    }).bind(this);
+    };
 
-    const onUp = (() => {
+    const onUp = () => {
       this.removeEntity("temp");
       let pfPos = this.controller.mouseDownPos!;
       let pfW = this.controller.mouseUpPos!.x - this.controller.mouseDownPos!.x;
@@ -120,7 +132,7 @@ export class Game {
 
       const randId = randomId();
       this.addPlatform(randId, pfPos, pfW, pfH, "green", false, true);
-    }).bind(this);
+    };
 
     this.controller.addDoOn("mousedown", onDown);
     this.controller.addDoOn("mousemove", onMove);
