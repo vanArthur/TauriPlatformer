@@ -8,8 +8,6 @@ export interface doorProps {
 }
 
 export class Door extends Entity {
-  levelToLoad: number = 0;
-
   constructor(
     id: string,
     pos: Vec2,
@@ -40,6 +38,6 @@ export class Door extends Entity {
   }
 
   enter() {
-    this.game.LevelLoader.loadLevel(1.1);
+    this.game.LevelLoader.loadLevel(this.props.levelToLoad);
   }
 }
