@@ -20,6 +20,10 @@ export class Game {
   pauzed: boolean = false;
   LevelLoader: LevelLoader = new LevelLoader(this);
   LevelCreator: LevelCreator = new LevelCreator(this);
+  screen: { width: number; height: number } = {
+    width: 1280,
+    height: 720,
+  };
 
   constructor(canvas: HTMLCanvasElement) {
     this.controller = new Controller(document);
@@ -41,7 +45,7 @@ export class Game {
     this.deltaTime = (time - this.lastTime) / 1000;
 
     if (!this.pauzed) {
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.clearRect(0, 0, this.screen.width, this.screen.height);
       this.update();
       this.render(this.ctx);
     } else {
@@ -67,9 +71,7 @@ export class Game {
   }
 
   render(ctx: CanvasRenderingContext2D) {
-    const fps = (1000 / this.deltaTime).toString();
     const currentLevel = this.LevelLoader.getLevel().toString();
-    text(ctx, this.canvas.width - 50, 30, 30, `30px Arial`, fps, "black");
     text(ctx, 10, 30, 30, `30px Arial`, currentLevel, "black");
     let shouldRenderPlayer = true;
     for (var id in this.entities) {
@@ -216,5 +218,14 @@ export class Game {
   resizeEvent() {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
+    let scale = window.innerWidth / this.screen.width;
+
+    console.log(window.innerHeight / scale);
+
+    if (window.innerHeight / scale < this.screen.height) {
+      scale = window.innerHeight / this.screen.height;
+    }
+
+    this.ctx.scale(scale, scale);
   }
 }

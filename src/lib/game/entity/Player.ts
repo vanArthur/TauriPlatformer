@@ -47,7 +47,7 @@ export class Player extends Entity {
     if (game.controller.isPressed("Space")) {
       if (this.grounded) {
         this.acc.y = 0;
-        this.acc.y -= this.speed * 4 * game.deltaTime;
+        this.acc.y -= this.speed * 5 * game.deltaTime;
         this.grounded = false;
       }
     }

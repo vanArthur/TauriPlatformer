@@ -40,8 +40,8 @@ export default class LevelLoader {
     const levelCreator = this.game.LevelCreator;
 
     this.reset();
-    const screenWidth = this.game.canvas.width;
-    const screenHeight = this.game.canvas.height;
+    const screenWidth = this.game.screen.width;
+    const screenHeight = this.game.screen.height;
 
     this.EntitySpawner(level, levelCreator, screenHeight, screenWidth);
 
@@ -101,7 +101,7 @@ export default class LevelLoader {
       case 1.1: {
         this.game.player = new Player(
           "Player",
-          new Vec2(100, 100),
+          new Vec2(1108, 570),
           "#4287f5",
           this.game
         );
