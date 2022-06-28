@@ -4,10 +4,15 @@ import { Rectangle } from "../helperFunctions/shapes.js";
 import { Game } from "../Game.js";
 import { Door, doorProps } from "./Door.js";
 
+interface playerProps {
+  cantEnterDoors: { [id: string]: Door };
+}
+
 export class Player extends Entity {
   jumping: boolean;
   speed: number;
   lives: number = 3;
+  props: playerProps = { cantEnterDoors: {} };
   constructor(id: string, pos: Vec2, color: string, game: Game) {
     super(id, "Player", pos, new Rectangle(0, 0, 20, 50, color), true, game);
     this.jumping = false;
@@ -19,8 +24,19 @@ export class Player extends Entity {
     for (var id in this.colliders) {
       const entity = this.colliders[id];
       if (entity.type == "Flag") this.game.LevelLoader.nextLevel();
-      else if (entity.type == "Door") (this.colliders[id] as Door).enter();
-      else if (entity.deadly) {
+      else if (
+        entity.type == "Door" &&
+        this.props.cantEnterDoors[id] == undefined
+      ) {
+        const door = entity as Door;
+        door.enter();
+        this.props.cantEnterDoors[id] = door;
+        this.vel = new Vec2();
+        this.acc = new Vec2();
+        setTimeout(() => {
+          delete this.props.cantEnterDoors[id];
+        }, 1500);
+      } else if (entity.deadly) {
         this.friction *= 5;
         setTimeout(() => {
           this.game.LevelLoader.restart();

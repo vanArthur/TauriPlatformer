@@ -99,12 +99,7 @@ export default class LevelLoader {
         return;
       }
       case 1.1: {
-        this.game.player = new Player(
-          "Player",
-          new Vec2(1108, 570),
-          "#4287f5",
-          this.game
-        );
+        this.game.player.pos = new Vec2(1108, 570);
 
         levelCreator.addRect(
           new Vec2(0, 0),
