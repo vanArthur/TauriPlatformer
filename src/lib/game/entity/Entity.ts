@@ -20,6 +20,7 @@ export default class Entity {
   colliders: { [id: string]: Entity } = {};
   game: Game;
   deadly: boolean = false;
+  damage: number = 10;
   props: any;
 
   constructor(
@@ -67,7 +68,6 @@ export default class Entity {
 
   move(): void {
     const deltaTime = this.game.deltaTime;
-    const entities = this.game.entities;
 
     const wasleft = this.vel.x < 0;
     const wasright = this.vel.x > 0;
@@ -84,22 +84,15 @@ export default class Entity {
     }
 
     this.vel.add(this.acc);
+    this.pos.add(this.vel);
     this.acc.y = 0;
 
-    let col;
-    if (entities != undefined) {
-      col = this.rectangleCollision(entities);
-    }
+    this.rectangleCollision();
+
     if (Object.keys(this.colliders).length > 0) {
       for (let entity in this.colliders) {
         this.pos.add(this.colliders[entity].vel);
       }
-    }
-
-    this.pos.add(this.vel);
-    if (col) {
-      if (col.vcol) this.vel.y = 0;
-      if (col.hcol) this.vel.x = 0;
     }
   }
 
@@ -118,93 +111,110 @@ export default class Entity {
     this.vel = new Vec2(0, 0);
   }
 
-  rectangleCollision(rects: { [id: string]: Entity }): {
-    [id: string]: boolean;
-  } {
-    let vcol = false;
-    let hcol = false;
-    let currentColliders: { [id: string]: Entity } = {};
-    for (var i in rects) {
-      let hColEntity;
-      let vColEntity;
-      let rect: any = rects[i].getCollider();
-      if (rect == undefined) continue;
+  //check for collision with all entities and save the colliding entity
 
-      //hor collision
-      if (
-        !(
-          Math.abs(this.getCenterY() - (rect.pos.y * 2 + rect.height) / 2) >
-          this.shapes[0].height / 2 + rect.height / 2
-        )
-      ) {
-        hColEntity = rects[i];
-        if (rects[i].passThrough) {
-          hcol = this.stopH(rect, hcol);
+  rectangleCollision() {
+    this.colliders = {};
+    const entities = this.game.entities;
+    const rect1 = this;
+    if (rect1 == undefined) {
+      return false;
+    }
+    let col = false;
+
+    for (let entity in entities) {
+      if (entity != this.id) {
+        const rect2 = entities[entity];
+        if (rect2 != undefined) {
+          const collision = this.rectangleCollisionWith(entities[entity]);
+          if (collision) {
+            this.colliders[entity] = entities[entity];
+            col = true;
+
+            //if moving right
+            if (this.vel.x > 0) {
+              //check distance between right side of rect1 and left side of rect2
+              const distance = distBetweenPoints(
+                this.getRight(),
+                0,
+                rect2.getLeft(),
+                0
+              );
+              //if distance is less than the velocity of the entity
+              if (distance < this.vel.x) {
+                this.pos.x -= distance + 0.2;
+                this.vel.x *= -1 * 0.1;
+              }
+            }
+            //if moving left
+            else if (this.vel.x < 0) {
+              //check distance between left side of rect1 and right side of rect2
+              const distance = distBetweenPoints(
+                this.getLeft(),
+                0,
+                rect2.getRight(),
+                0
+              );
+              //if distance is less than the velocity of the entity
+              if (distance < Math.abs(this.vel.x)) {
+                this.pos.x += distance + 0.2;
+                this.vel.x *= -1 * 0.1;
+              }
+            }
+            //if moving down
+            if (this.vel.y > 0) {
+              //check distance between bottom of rect1 and top of rect2
+              const distance = distBetweenPoints(
+                this.getBottom(),
+                0,
+                rect2.getTop(),
+                0
+              );
+              //if distance is less than the velocity of the entity
+              if (distance < this.vel.y) {
+                this.pos.y -= distance + 0.2;
+                this.vel.y = 0;
+                this.acc.y = 0;
+                this.grounded = true;
+              }
+            }
+            //if moving up
+            else if (this.vel.y < 0) {
+              //check distance between top of rect1 and bottom of rect2
+              const distance = distBetweenPoints(
+                this.getTop(),
+                0,
+                rect2.getBottom(),
+                0
+              );
+              //if distance is less than the velocity of the entity
+              if (distance < Math.abs(this.vel.y)) {
+                this.pos.y += distance;
+                this.vel.y = 0;
+                this.acc.y = 0;
+              }
+            }
+          }
         }
       }
-      // vert collision
-      if (
-        !(
-          Math.abs(this.getCenterX() - (rect.pos.x * 2 + rect.width) / 2) >
-          this.shapes[0].width / 2 + rect.width / 2
-        )
-      ) {
-        vColEntity = rects[i];
-        if (rects[i].passThrough) {
-          vcol = this.stopV(rect, vcol);
-        }
-      }
-      if (hColEntity != undefined && hColEntity == vColEntity) {
-        if (vColEntity != this) currentColliders[vColEntity.id] = vColEntity;
-      }
     }
-    this.colliders = currentColliders;
-    return { vcol: vcol, hcol: hcol };
-  }
-  private stopH(rect: any, hcol: boolean) {
-    if (this.vel.x >= 0) {
-      let xdist = distBetweenPoints(0, this.getRight(), 0, rect.pos.x);
-      if (this.vel.x > xdist) {
-        this.vel.x = xdist - 0.1;
-        hcol = true;
-      }
-    } else if (this.vel.x < 0) {
-      let xdist = distBetweenPoints(
-        0,
-        this.getLeft(),
-        0,
-        rect.pos.x + rect.width
-      );
-      if (-this.vel.x > xdist) {
-        this.vel.x = -xdist + 0;
-        hcol = true;
-      }
-    }
-    return hcol;
+    return col;
   }
 
-  private stopV(rect: any, vcol: boolean) {
-    if (this.vel.y >= 0) {
-      let ydist = distBetweenPoints(0, this.getBottom(), 0, rect.pos.y);
-      if (this.vel.y > ydist) {
-        this.vel.y = ydist;
-        this.grounded = true;
-        vcol = true;
-      }
-    } else if (this.vel.y < 0) {
-      let ydist = distBetweenPoints(
-        0,
-        this.getTop(),
-        0,
-        rect.pos.y + rect.height
-      );
-      if (-this.vel.y > ydist) {
-        this.vel.y = -ydist;
-        vcol = true;
-      }
+  rectangleCollisionWith(rect: Entity) {
+    const rect1 = this;
+    const rect2 = rect;
+    if (rect1 == undefined || rect2 == undefined) {
+      return false;
     }
-    return vcol;
+    return (
+      rect1.getLeft() < rect2.getRight() &&
+      rect1.getRight() > rect2.getLeft() &&
+      rect1.getTop() < rect2.getBottom() &&
+      rect1.getBottom() > rect2.getTop()
+    );
   }
+
   getLeft(): number {
     return this.pos.x;
   }
