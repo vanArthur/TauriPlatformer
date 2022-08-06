@@ -1,5 +1,6 @@
 lockfiles
 pnpm-lock.yaml
+bun.lockb
 
 # Logs
 logs
