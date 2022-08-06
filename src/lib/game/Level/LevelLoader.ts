@@ -1,10 +1,8 @@
-import { randomId } from "../helperFunctions/randomId";
-import { Flag } from "../entity/Flag";
 import { Player } from "../entity/Player";
 import { Game } from "../Game";
 import { Vec2 } from "../helperFunctions/vector";
-import { Platform } from "../entity/Platform";
 import LevelCreator from "./LevelCreator";
+import { HUD } from "../entity/HUD";
 
 export default class LevelLoader {
   currentLevel: number;
@@ -29,7 +27,7 @@ export default class LevelLoader {
     this.loadLevel();
   }
 
-  async reset() {
+  private async reset() {
     this.game.entities = {};
   }
 
@@ -44,8 +42,23 @@ export default class LevelLoader {
     const screenHeight = this.game.screen.height;
 
     this.EntitySpawner(level, levelCreator, screenHeight, screenWidth);
+    this.hudLoader(screenHeight, screenWidth);
 
     return;
+  }
+
+  private async hudLoader(screenHeight: number, screenWidth: number) {
+    const width = 100;
+    const hud = new HUD(
+      "HUD_HEALTH",
+      new Vec2(30, 30),
+      width,
+      10,
+      this.game,
+      100
+    );
+    hud.updateHUD();
+    this.game.addEntity("HUD_HEALTH", hud);
   }
 
   private EntitySpawner(
@@ -58,7 +71,7 @@ export default class LevelLoader {
       case 1: {
         this.game.player = new Player(
           "Player",
-          new Vec2(100, 100),
+          new Vec2(100, screenHeight - 100),
           "#4287f5",
           this.game
         );
@@ -99,7 +112,7 @@ export default class LevelLoader {
         return;
       }
       case 1.1: {
-        this.game.player.pos = new Vec2(1108, 570);
+        this.game.player.pos = new Vec2(1108, 565);
 
         levelCreator.addRect(
           new Vec2(0, 0),

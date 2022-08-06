@@ -3,18 +3,30 @@ import Entity from "./Entity.js";
 import { Rectangle } from "../helperFunctions/shapes.js";
 import { Game } from "../Game.js";
 import { Door, doorProps } from "./Door.js";
+import { HUD } from "./HUD.js";
 
 interface playerProps {
-  cantEnterDoors: { [id: string]: Door };
+  health: any;
+  canEnterDoor: boolean;
+  healthRegen: number;
+  inCombat: boolean;
+  combatCooldown: any;
 }
 
 export class Player extends Entity {
   jumping: boolean;
   speed: number;
   lives: number = 3;
-  props: playerProps = { cantEnterDoors: {} };
+  props: playerProps = {
+    health: 100,
+    canEnterDoor: true,
+    healthRegen: 1,
+    inCombat: false,
+    combatCooldown: undefined,
+  };
   constructor(id: string, pos: Vec2, color: string, game: Game) {
     super(id, "Player", pos, new Rectangle(0, 0, 20, 50, color), true, game);
+    this.setCollider(new Rectangle(0, 0, 20, 50, color));
     this.jumping = false;
     this.speed = 50;
   }
@@ -24,25 +36,53 @@ export class Player extends Entity {
     for (var id in this.colliders) {
       const entity = this.colliders[id];
       if (entity.type == "Flag") this.game.LevelLoader.nextLevel();
-      else if (
-        entity.type == "Door" &&
-        this.props.cantEnterDoors[id] == undefined
-      ) {
+      else if (entity.type == "Door" && this.props.canEnterDoor) {
         const door = entity as Door;
         door.enter();
-        this.props.cantEnterDoors[id] = door;
+        this.props.canEnterDoor = false;
         this.vel = new Vec2();
         this.acc = new Vec2();
         setTimeout(() => {
-          delete this.props.cantEnterDoors[id];
+          this.props.canEnterDoor = true;
         }, 1500);
       } else if (entity.deadly) {
-        this.friction *= 5;
-        setTimeout(() => {
-          this.game.LevelLoader.restart();
-        }, 500);
+        this.takeDamage(entity.damage);
+        // player is in combat
+        this.props.inCombat = true;
+        if (this.props.combatCooldown == undefined) {
+          this.props.combatCooldown = setTimeout(() => {
+            this.props.inCombat = false;
+            this.props.combatCooldown = undefined;
+          }, 5000);
+        } else {
+          clearTimeout(this.props.combatCooldown);
+          this.props.combatCooldown = setTimeout(() => {
+            this.props.inCombat = false;
+            this.props.combatCooldown = undefined;
+          }, 5000);
+        }
       }
     }
+
+    //slowly regenerate health if not in combat
+    if (this.props.health < 100) {
+      if (!this.props.inCombat) {
+        this.addHealth();
+      }
+    }
+  }
+
+  takeDamage(damage: number) {
+    this.props.health -= damage * this.game.deltaTime * 10;
+    (this.game.entities["HUD_HEALTH"] as HUD).updateHUD();
+    if (this.props.health <= 0) {
+      this.game.LevelLoader.restart();
+    }
+  }
+
+  addHealth() {
+    this.props.health += this.props.healthRegen * this.game.deltaTime * 10;
+    (this.game.entities["HUD_HEALTH"] as HUD).updateHUD();
   }
 
   movement() {

@@ -108,7 +108,7 @@ export class Controller {
     return this.states[key].state;
   }
 
-  getMousePos(evt: MouseEvent) {
+  private getMousePos(evt: MouseEvent) {
     let rect: any;
     let el = this.parent as HTMLElement;
     try {
