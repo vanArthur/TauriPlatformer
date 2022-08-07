@@ -8,6 +8,7 @@ import { text } from "./helperFunctions/canvas.js";
 import LevelLoader from "./Level/LevelLoader.js";
 import LevelCreator from "./Level/LevelCreator.js";
 import Entity from "./entity/Entity.js";
+import { HUD } from "./entity/HUD.js";
 
 export class Game {
   controller: Controller;
@@ -64,6 +65,7 @@ export class Game {
     for (let id in this.entities) {
       this.entities[id].update();
     }
+    (this.entities["HUD"] as HUD).update_COLLIDERS();
   }
 
   restart() {
@@ -136,9 +138,9 @@ export class Game {
       this.addPlatform(randId, pfPos, pfW, pfH, "green", false, true);
     };
 
-    this.controller.addDoOn("mousedown", onDown);
-    this.controller.addDoOn("mousemove", onMove);
-    this.controller.addDoOn("mouseup", onUp);
+    //this.controller.addDoOn("mousedown", onDown);
+    //this.controller.addDoOn("mousemove", onMove);
+    //this.controller.addDoOn("mouseup", onUp);
     this.controller.addDoOn("keydown", (e: KeyboardEvent) => {
       if (this.controller.isPressed("MetaLeft")) {
         if (e.code == "KeyA") {
@@ -178,7 +180,7 @@ export class Game {
       )
     );
     this.entities[id].deadly = deadly;
-    this.entities[id].passThrough = collision;
+    this.entities[id].passThrough = !collision;
 
     return this.entities[id];
   }
@@ -219,8 +221,6 @@ export class Game {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
     let scale = window.innerWidth / this.screen.width;
-
-    console.log(window.innerHeight / scale);
 
     if (window.innerHeight / scale < this.screen.height) {
       scale = window.innerHeight / this.screen.height;

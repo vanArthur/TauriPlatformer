@@ -28,7 +28,7 @@ export class Player extends Entity {
     super(id, "Player", pos, new Rectangle(0, 0, 20, 50, color), true, game);
     this.setCollider(new Rectangle(0, 0, 20, 50, color));
     this.jumping = false;
-    this.speed = 50;
+    this.speed = 40;
   }
 
   update() {
@@ -74,7 +74,7 @@ export class Player extends Entity {
 
   takeDamage(damage: number) {
     this.props.health -= damage * this.game.deltaTime * 10;
-    (this.game.entities["HUD_HEALTH"] as HUD).updateHUD();
+    (this.game.entities["HUD"] as HUD).update_HEALTH();
     if (this.props.health <= 0) {
       this.game.LevelLoader.restart();
     }
@@ -82,7 +82,7 @@ export class Player extends Entity {
 
   addHealth() {
     this.props.health += this.props.healthRegen * this.game.deltaTime * 10;
-    (this.game.entities["HUD_HEALTH"] as HUD).updateHUD();
+    (this.game.entities["HUD"] as HUD).update_HEALTH();
   }
 
   movement() {
@@ -103,9 +103,15 @@ export class Player extends Entity {
     if (game.controller.isPressed("Space")) {
       if (this.grounded) {
         this.acc.y = 0;
-        this.acc.y -= this.speed * 5 * game.deltaTime;
+        this.acc.y -= this.speed / this.friction / 1.5;
         this.grounded = false;
       }
+    }
+
+    if (game.controller.mouseDown) {
+      this.pos = game.controller.mousePos;
+      this.vel = new Vec2();
+      this.acc = new Vec2();
     }
 
     this.move();

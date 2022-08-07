@@ -7,7 +7,7 @@ import { HUD } from "../entity/HUD";
 export default class LevelLoader {
   currentLevel: number;
   game: Game;
-  maxLevel: number = 1;
+  maxLevel: number = 2;
   constructor(game: Game) {
     this.currentLevel = 1;
     this.game = game;
@@ -49,16 +49,9 @@ export default class LevelLoader {
 
   private async hudLoader(screenHeight: number, screenWidth: number) {
     const width = 100;
-    const hud = new HUD(
-      "HUD_HEALTH",
-      new Vec2(30, 30),
-      width,
-      10,
-      this.game,
-      100
-    );
-    hud.updateHUD();
-    this.game.addEntity("HUD_HEALTH", hud);
+    const hud = new HUD("HUD", new Vec2(), width, 10, this.game, 100);
+    hud.update();
+    this.game.addEntity("HUD", hud);
   }
 
   private EntitySpawner(
@@ -162,6 +155,46 @@ export default class LevelLoader {
           new Vec2((screenWidth * 2) / 3, (screenHeight * 2) / 3),
           10
         );
+        return;
+      }
+      case 2: {
+        this.game.player.pos = new Vec2(100, screenHeight - 100);
+
+        levelCreator.addRect(
+          new Vec2(-5, screenHeight - 10),
+          screenWidth + 10,
+          10,
+          true,
+          "brown"
+        );
+
+        levelCreator.addRect(
+          new Vec2(-5, screenHeight - 14),
+          screenWidth + 10,
+          4,
+          true,
+          "green"
+        );
+
+        let moving_platform = levelCreator.addRect(
+          new Vec2(500, screenHeight - 40),
+          100,
+          14,
+          true,
+          "brown"
+        );
+        moving_platform.friction = 0;
+        moving_platform.gravity = 0;
+        moving_platform.vel.x = -1;
+        moving_platform.update = function () {
+          this.move();
+          if (this.pos.x <= 0) {
+            this.vel.x = 1;
+          } else if (this.pos.x >= screenWidth - this.getCollider().width) {
+            this.vel.x = -1;
+          }
+        };
+        return;
       }
     }
   }

@@ -1,4 +1,4 @@
-import { Circle, Rectangle } from "../helperFunctions/shapes.js";
+import { Circle, Rectangle, Text } from "../helperFunctions/shapes.js";
 import Entity from "./Entity.js";
 import { Vec2 } from "../helperFunctions/vector.js";
 import { Game } from "../Game.js";
@@ -18,8 +18,15 @@ export class HUD extends Entity {
     zIndex: number
   ) {
     const shapes = [
-      new Rectangle(pos.x, pos.y, width, height, "lightgray"),
-      new Rectangle(pos.x, pos.y, width, height, "green"),
+      new Rectangle(
+        game.canvas.width - width - 10,
+        10,
+        width,
+        height,
+        "lightgray"
+      ),
+      new Rectangle(game.canvas.width - width - 10, 10, width, height, "green"),
+      new Text(10, 50, "black", "Colliders: ", 10, "20px Arial"),
     ];
 
     super("HUD_HEALTH", "HUD", pos, shapes, false, game, zIndex);
@@ -31,8 +38,28 @@ export class HUD extends Entity {
     };
   }
 
-  updateHUD() {
+  update_HEALTH() {
     this.props.health = this.game.player.props.health;
     this.shapes[1].width = (this.props.health / 100) * this.shapes[0].width;
+  }
+
+  update_COLLIDERS() {
+    let colliders = [];
+    for (var id in this.game.player.colliders) {
+      const entity = this.game.player.colliders[id];
+      colliders.push(entity.type);
+    }
+
+    let new_text = "";
+    for (var i = 0; i < colliders.length; i++) {
+      new_text += colliders[i] + "\n";
+    }
+
+    this.shapes[2].text = `Colliders: ${new_text}`;
+  }
+
+  update() {
+    this.update_HEALTH();
+    this.update_COLLIDERS();
   }
 }

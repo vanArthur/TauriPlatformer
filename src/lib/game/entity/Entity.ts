@@ -1,8 +1,12 @@
 import { drawShape } from "../helperFunctions/canvas.js";
 import { Vec2 } from "../helperFunctions/vector.js";
 import { Line, Shape } from "../helperFunctions/shapes.js";
-import { distBetweenPoints } from "../helperFunctions/math.js";
+import {
+  distBetweenPoints,
+  distBetweenPointsVec,
+} from "../helperFunctions/math.js";
 import { Game } from "../Game.js";
+import { ensureSettingsFile } from "tauri-settings/dist/fs/ensure-settings-file.js";
 
 export default class Entity {
   type: string = "Entity";
@@ -20,7 +24,7 @@ export default class Entity {
   colliders: { [id: string]: Entity } = {};
   game: Game;
   deadly: boolean = false;
-  damage: number = 10;
+  damage: number = 5;
   props: any;
 
   constructor(
@@ -73,27 +77,50 @@ export default class Entity {
     const wasright = this.vel.x > 0;
 
     this.vel.y += this.gravity * deltaTime;
-    if (this.vel.x > 0) {
-      this.vel.x -= this.friction * deltaTime * this.vel.x;
-    } else if (this.vel.x < 0) {
-      this.vel.x -= this.friction * deltaTime * this.vel.x;
-    }
+    this.vel.x -= this.friction * deltaTime * this.vel.x;
 
     if ((wasleft && this.vel.x > 0) || (wasright && this.vel.x < 0)) {
       this.vel.x = 0; // clamp at zero to prevent friction from making us jiggle side to side
     }
 
+    //move with entities you stand on
+    for (let entity_id in this.colliders) {
+      const entity = this.colliders[entity_id];
+      if (entity.passThrough) {
+        continue;
+      }
+      let leftDist = distBetweenPoints(
+        this.getTopLeft().x,
+        0,
+        entity.getTopRight().x,
+        0
+      );
+      let rightDist = distBetweenPoints(
+        this.getTopRight().x,
+        0,
+        entity.getTopLeft().x,
+        0
+      );
+      let bottomDist = distBetweenPoints(
+        this.getBottomLeft().y,
+        0,
+        entity.getTopLeft().y,
+        0
+      );
+      let combinedSpeedH = Math.abs(this.vel.x) + Math.abs(entity.vel.x) * 4;
+      if (bottomDist < 5 && Math.abs(entity.vel.x) > 0.2) {
+        this.pos.add(entity.vel.copy());
+      } else if (rightDist < combinedSpeedH && entity.vel.x < 0) {
+        this.pos.x += entity.vel.x;
+      } else if (leftDist < combinedSpeedH && entity.vel.x > 0) {
+        this.pos.x += entity.vel.x;
+      }
+    }
     this.vel.add(this.acc);
     this.pos.add(this.vel);
     this.acc.y = 0;
 
     this.rectangleCollision();
-
-    if (Object.keys(this.colliders).length > 0) {
-      for (let entity in this.colliders) {
-        this.pos.add(this.colliders[entity].vel);
-      }
-    }
   }
 
   setVel(vel: Vec2) {
@@ -128,71 +155,57 @@ export default class Entity {
         if (rect2 != undefined) {
           const collision = this.rectangleCollisionWith(entities[entity]);
           if (collision) {
-            this.colliders[entity] = entities[entity];
+            this.colliders[entity] = rect2;
             col = true;
 
-            //if moving right
-            if (this.vel.x > 0) {
-              //check distance between right side of rect1 and left side of rect2
-              const distance = distBetweenPoints(
-                this.getRight(),
-                0,
-                rect2.getLeft(),
-                0
-              );
-              //if distance is less than the velocity of the entity
-              if (distance < this.vel.x) {
-                this.pos.x -= distance + 0.2;
-                this.vel.x *= -1 * 0.1;
-              }
+            const right_distance = distBetweenPoints(
+              this.getRight(),
+              0,
+              rect2.getLeft(),
+              0
+            );
+            const left_distance = distBetweenPoints(
+              this.getLeft(),
+              0,
+              rect2.getRight(),
+              0
+            );
+            const top_distance = distBetweenPoints(
+              this.getTop(),
+              0,
+              rect2.getBottom(),
+              0
+            );
+            const bottom_distance = distBetweenPoints(
+              this.getBottom(),
+              0,
+              rect2.getTop(),
+              0
+            );
+
+            console.log({
+              right_distance,
+              left_distance,
+              top_distance,
+              bottom_distance,
+            });
+
+            if (right_distance < 3) {
+              this.pos.x = rect2.getLeft() - rect1.getCollider().width;
+              this.vel.x = 0;
             }
-            //if moving left
-            else if (this.vel.x < 0) {
-              //check distance between left side of rect1 and right side of rect2
-              const distance = distBetweenPoints(
-                this.getLeft(),
-                0,
-                rect2.getRight(),
-                0
-              );
-              //if distance is less than the velocity of the entity
-              if (distance < Math.abs(this.vel.x)) {
-                this.pos.x += distance + 0.2;
-                this.vel.x *= -1 * 0.1;
-              }
+            if (left_distance < 3) {
+              this.pos.x = rect2.getRight();
+              this.vel.x = 0;
             }
-            //if moving down
-            if (this.vel.y > 0) {
-              //check distance between bottom of rect1 and top of rect2
-              const distance = distBetweenPoints(
-                this.getBottom(),
-                0,
-                rect2.getTop(),
-                0
-              );
-              //if distance is less than the velocity of the entity
-              if (distance < this.vel.y) {
-                this.pos.y -= distance + 0.2;
-                this.vel.y = 0;
-                this.acc.y = 0;
-                this.grounded = true;
-              }
+            if (top_distance < 3) {
+              this.pos.y = rect2.getBottom();
+              this.vel.y = 0;
             }
-            //if moving up
-            else if (this.vel.y < 0) {
-              //check distance between top of rect1 and bottom of rect2
-              const distance = distBetweenPoints(
-                this.getTop(),
-                0,
-                rect2.getBottom(),
-                0
-              );
-              //if distance is less than the velocity of the entity
-              if (distance < Math.abs(this.vel.y)) {
-                this.pos.y += distance;
-                this.vel.y = 0;
-                this.acc.y = 0;
-              }
+            if (bottom_distance < 3) {
+              this.pos.y = rect2.getTop() - rect1.getCollider().height;
+              this.grounded = true;
+              this.vel.y = 0;
             }
           }
         }

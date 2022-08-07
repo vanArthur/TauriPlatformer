@@ -25,6 +25,7 @@ export class Vec2 {
   multiplyConst(c: number) {
     this.x *= c;
     this.y *= c;
+    return this;
   }
 
   mag(): number {

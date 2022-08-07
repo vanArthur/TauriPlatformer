@@ -31,7 +31,7 @@ export default class LevelCreator {
     color: string,
     zIndex?: number
   ) {
-    this.game.addPlatform(
+    return this.game.addPlatform(
       `floor_${randomId()}`,
       pos,
       width,
