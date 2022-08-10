@@ -26,6 +26,7 @@ export class HUD extends Entity {
         "lightgray"
       ),
       new Rectangle(game.canvas.width - width - 10, 10, width, height, "green"),
+      new Rectangle(8, 30, 500, 30, "lightgray"),
       new Text(10, 50, "black", "Colliders: ", 10, "20px Arial"),
     ];
 
@@ -55,10 +56,10 @@ export class HUD extends Entity {
       new_text += colliders[i] + "\n";
     }
 
-    this.shapes[2].text = `Colliders: ${new_text}`;
+    this.shapes[3].text = `Colliders: ${new_text}`;
   }
 
-  update() {
+  update_all() {
     this.update_HEALTH();
     this.update_COLLIDERS();
   }
