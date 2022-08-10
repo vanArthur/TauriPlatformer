@@ -2,8 +2,10 @@ import { Vec2 } from "../helperFunctions/vector.js";
 import Entity from "./Entity.js";
 import { Rectangle } from "../helperFunctions/shapes.js";
 import { Game } from "../Game.js";
-import { Door, doorProps } from "./Door.js";
+import { Door } from "./Door.js";
+import { Bullet } from "./Bullet.js";
 import { HUD } from "./HUD.js";
+import { randomId } from "../helperFunctions/randomId.js";
 
 interface playerProps {
   health: any;
@@ -11,6 +13,7 @@ interface playerProps {
   healthRegen: number;
   inCombat: boolean;
   combatCooldown: any;
+  shootDelay: any;
 }
 
 export class Player extends Entity {
@@ -23,9 +26,10 @@ export class Player extends Entity {
     healthRegen: 1,
     inCombat: false,
     combatCooldown: undefined,
+    shootDelay: undefined,
   };
   constructor(id: string, pos: Vec2, color: string, game: Game) {
-    super(id, "Player", pos, new Rectangle(0, 0, 20, 50, color), true, game);
+    super(id, "Player", pos, new Rectangle(0, 0, 20, 50, color), false, game);
     this.setCollider(new Rectangle(0, 0, 20, 50, color));
     this.jumping = false;
     this.speed = 40;
@@ -80,6 +84,27 @@ export class Player extends Entity {
     }
   }
 
+  shoot() {
+    if (this.props.shootDelay == undefined) {
+      let id = `bullet_${randomId()}`;
+      let vel;
+      if (this.lastDirection == "right") {
+        vel = new Vec2(20, 0);
+      } else {
+        vel = new Vec2(-20, 0);
+      }
+
+      this.game.addEntity(
+        id,
+        new Bullet(id, this.id, vel, this.pos.copy(), this.game)
+      );
+
+      this.props.shootDelay = setTimeout(() => {
+        this.props.shootDelay = undefined;
+      }, 300);
+    }
+  }
+
   addHealth() {
     this.props.health += this.props.healthRegen * this.game.deltaTime * 10;
     (this.game.entities["HUD"] as HUD).update_HEALTH();
@@ -106,6 +131,12 @@ export class Player extends Entity {
         this.acc.y -= this.speed / this.friction / 1.5;
         this.grounded = false;
       }
+    }
+
+    if (game.controller.isPressed("Enter")) {
+      //cool down for shooting
+
+      this.shoot();
     }
 
     if (game.controller.mouseDown) {
