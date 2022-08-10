@@ -3,6 +3,14 @@ import { Game } from "../Game";
 import { Vec2 } from "../helperFunctions/vector";
 import LevelCreator from "./LevelCreator";
 import { HUD } from "../entity/HUD";
+import Entity from "../entity/Entity";
+import { Rectangle } from "../helperFunctions/shapes";
+import {
+  distBetweenPoints,
+  distBetweenPointsVec,
+} from "../helperFunctions/math";
+import { Bullet } from "../entity/Bullet";
+import { randomId } from "../helperFunctions/randomId";
 
 export default class LevelLoader {
   currentLevel: number;
@@ -68,11 +76,12 @@ export default class LevelLoader {
           "#4287f5",
           this.game
         );
+        this.game.player.checkCollision = true;
         levelCreator.addRect(
           new Vec2(-5, screenHeight - 10),
           screenWidth + 10,
           10,
-          true,
+          false,
           "brown"
         );
 
@@ -80,7 +89,7 @@ export default class LevelLoader {
           new Vec2(-5, screenHeight - 14),
           screenWidth + 10,
           4,
-          true,
+          false,
           "green"
         );
 
@@ -111,7 +120,7 @@ export default class LevelLoader {
           new Vec2(0, 0),
           screenWidth,
           screenHeight,
-          false,
+          true,
           "black",
           0
         );
@@ -120,7 +129,7 @@ export default class LevelLoader {
           new Vec2(0, 0),
           100,
           screenHeight,
-          true,
+          false,
           "#542a01",
           1
         );
@@ -129,7 +138,7 @@ export default class LevelLoader {
           new Vec2(screenWidth - 100, 0),
           100,
           screenHeight,
-          true,
+          false,
           "#542a01",
           1
         );
@@ -138,7 +147,7 @@ export default class LevelLoader {
           new Vec2(0, screenHeight - 100),
           screenWidth,
           100,
-          true,
+          false,
           "#542a01",
           1
         );
@@ -164,7 +173,7 @@ export default class LevelLoader {
           new Vec2(-5, screenHeight - 10),
           screenWidth + 10,
           10,
-          true,
+          false,
           "brown"
         );
 
@@ -172,28 +181,61 @@ export default class LevelLoader {
           new Vec2(-5, screenHeight - 14),
           screenWidth + 10,
           4,
-          true,
+          false,
           "green"
         );
 
         let moving_platform = levelCreator.addRect(
-          new Vec2(500, screenHeight - 40),
+          new Vec2(500, screenHeight - 200),
           100,
           14,
-          true,
+          false,
           "brown"
         );
         moving_platform.friction = 0;
         moving_platform.gravity = 0;
-        moving_platform.vel.x = -1;
-        moving_platform.update = function () {
-          this.move();
-          if (this.pos.x <= 0) {
-            this.vel.x = 1;
-          } else if (this.pos.x >= screenWidth - this.getCollider().width) {
-            this.vel.x = -1;
-          }
+        moving_platform.props = {
+          ...moving_platform.props,
+          increasor: 0,
         };
+        moving_platform.update = function () {
+          moving_platform.props.increasor += 0.01;
+          moving_platform.vel.y = Math.sin(moving_platform.props.increasor);
+          moving_platform.move();
+        };
+
+        const risingdoor: Entity = this.game.addEntity(
+          "risedoor",
+          new Entity(
+            "risedoor",
+            "risedoor",
+            new Vec2(screenWidth - 150, screenHeight - 114),
+            [new Rectangle(0, 0, 30, 100, "brown")],
+            false,
+            this.game
+          )
+        );
+        risingdoor.gravity = 0;
+        risingdoor.checkCollision = false;
+        risingdoor.update = function () {
+          const dist = distBetweenPointsVec(this.pos, this.game.player.pos);
+          if (dist < 150) {
+            this.vel.y = -1;
+          } else {
+            this.vel.y = 1;
+          }
+          if (this.pos.y < screenHeight - 180) {
+            this.pos.y = screenHeight - 180;
+            this.vel.y = 0;
+          }
+          if (this.pos.y > screenHeight - 113) {
+            this.pos.y = screenHeight - 113;
+            this.vel.y = 0;
+          }
+          this.move();
+        };
+        risingdoor.setCollider(new Rectangle(0, 0, 30, 100, "brown"));
+
         return;
       }
     }
