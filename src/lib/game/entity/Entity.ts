@@ -26,6 +26,8 @@ export default class Entity {
   deadly: boolean = false;
   damage: number = 5;
   props: any;
+  checkCollision: boolean = false;
+  lastDirection: string = "right";
 
   constructor(
     id: string,
@@ -83,44 +85,56 @@ export default class Entity {
       this.vel.x = 0; // clamp at zero to prevent friction from making us jiggle side to side
     }
 
-    //move with entities you stand on
-    for (let entity_id in this.colliders) {
-      const entity = this.colliders[entity_id];
-      if (entity.passThrough) {
-        continue;
-      }
-      let leftDist = distBetweenPoints(
-        this.getTopLeft().x,
-        0,
-        entity.getTopRight().x,
-        0
-      );
-      let rightDist = distBetweenPoints(
-        this.getTopRight().x,
-        0,
-        entity.getTopLeft().x,
-        0
-      );
-      let bottomDist = distBetweenPoints(
-        this.getBottomLeft().y,
-        0,
-        entity.getTopLeft().y,
-        0
-      );
-      let combinedSpeedH = Math.abs(this.vel.x) + Math.abs(entity.vel.x) * 4;
-      if (bottomDist < 5 && Math.abs(entity.vel.x) > 0.2) {
-        this.pos.add(entity.vel.copy());
-      } else if (rightDist < combinedSpeedH && entity.vel.x < 0) {
-        this.pos.x += entity.vel.x;
-      } else if (leftDist < combinedSpeedH && entity.vel.x > 0) {
-        this.pos.x += entity.vel.x;
+    if (this.checkCollision) {
+      //move with entities you stand on
+      for (let entity_id in this.colliders) {
+        const entity = this.colliders[entity_id];
+        if (entity.passThrough || this.passThrough) {
+          continue;
+        }
+        let leftDist = distBetweenPoints(
+          this.getTopLeft().x,
+          0,
+          entity.getTopRight().x,
+          0
+        );
+        let rightDist = distBetweenPoints(
+          this.getTopRight().x,
+          0,
+          entity.getTopLeft().x,
+          0
+        );
+        let bottomDist = distBetweenPoints(
+          this.getBottomLeft().y,
+          0,
+          entity.getTopLeft().y,
+          0
+        );
+        let combinedSpeedH = Math.abs(this.vel.x) + Math.abs(entity.vel.x) * 4;
+        if (bottomDist < 5 && Math.abs(entity.vel.x) > 0.2) {
+          this.pos.add(entity.vel.copy());
+        } else if (rightDist < combinedSpeedH && entity.vel.x < 0) {
+          this.pos.x += entity.vel.x;
+        } else if (leftDist < combinedSpeedH && entity.vel.x > 0) {
+          this.pos.x += entity.vel.x;
+        }
       }
     }
     this.vel.add(this.acc);
     this.pos.add(this.vel);
     this.acc.y = 0;
 
-    this.rectangleCollision();
+    if (this.checkCollision) {
+      this.rectangleCollision();
+    }
+
+    if (this.vel.x != 0) {
+      if (this.vel.x > 0) {
+        this.lastDirection = "right";
+      } else {
+        this.lastDirection = "left";
+      }
+    }
   }
 
   setVel(vel: Vec2) {
@@ -158,6 +172,10 @@ export default class Entity {
             this.colliders[entity] = rect2;
             col = true;
 
+            if (rect2.passThrough || this.passThrough) {
+              continue;
+            }
+
             const right_distance = distBetweenPoints(
               this.getRight(),
               0,
@@ -183,26 +201,19 @@ export default class Entity {
               0
             );
 
-            console.log({
-              right_distance,
-              left_distance,
-              top_distance,
-              bottom_distance,
-            });
-
-            if (right_distance < 3) {
+            if (right_distance < 5) {
               this.pos.x = rect2.getLeft() - rect1.getCollider().width;
               this.vel.x = 0;
             }
-            if (left_distance < 3) {
+            if (left_distance < 5) {
               this.pos.x = rect2.getRight();
               this.vel.x = 0;
             }
-            if (top_distance < 3) {
+            if (top_distance < 5) {
               this.pos.y = rect2.getBottom();
               this.vel.y = 0;
             }
-            if (bottom_distance < 3) {
+            if (bottom_distance < 5) {
               this.pos.y = rect2.getTop() - rect1.getCollider().height;
               this.grounded = true;
               this.vel.y = 0;

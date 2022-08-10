@@ -28,9 +28,17 @@ export class Game {
 
   constructor(canvas: HTMLCanvasElement) {
     this.controller = new Controller(document);
-    this.controller.addKeys(["KeyA", "KeyD", "Space", "KeyF", "MetaLeft"]);
+    this.controller.addKeys([
+      "KeyA",
+      "KeyD",
+      "Space",
+      "KeyF",
+      "MetaLeft",
+      "Enter",
+    ]);
     this.ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-    this.player = new Player("Player", new Vec2(50, 50), "black", this);
+    //player outside the world
+    this.player = new Player("Player", new Vec2(0, 0), "black", this);
     this.canvas = canvas;
   }
 
@@ -38,6 +46,8 @@ export class Game {
     appWindow.setTitle("Tauri Platformer");
     this.resizeEvent();
     this.LevelLoader.loadLevel(1);
+    this.player.acc = new Vec2(0, 0);
+    this.player.vel = new Vec2(0, 0);
     this.startListeners();
     this.gameLoop(0);
   }
@@ -82,7 +92,7 @@ export class Game {
       if (entity.zIndex > this.player.zIndex) {
         if (shouldRenderPlayer) {
           this.player.render(ctx);
-          shouldRenderPlayer = true;
+          shouldRenderPlayer = false;
         }
       }
 
@@ -98,49 +108,6 @@ export class Game {
       this.resizeEvent();
     });
 
-    const onDown = () => {
-      this.addPlatform(
-        "temp",
-        this.controller.mouseDownPos!,
-        this.controller.mouseUpPos!.x - this.controller.mouseDownPos!.x,
-        this.controller.mouseUpPos!.y - this.controller.mouseDownPos!.y,
-        "red",
-        false,
-        false
-      );
-    };
-
-    const onMove = () => {
-      if (this.entities["temp"] != undefined) {
-        this.entities["temp"].shapes[0].width =
-          this.controller.mousePos!.x - this.controller.mouseDownPos!.x;
-        this.entities["temp"].shapes[0].height =
-          this.controller.mousePos!.y - this.controller.mouseDownPos!.y;
-      }
-    };
-
-    const onUp = () => {
-      this.removeEntity("temp");
-      let pfPos = this.controller.mouseDownPos!;
-      let pfW = this.controller.mouseUpPos!.x - this.controller.mouseDownPos!.x;
-      let pfH = this.controller.mouseUpPos!.y - this.controller.mouseDownPos!.y;
-
-      if (pfW < 0) {
-        pfPos.x += pfW;
-        pfW = -pfW;
-      }
-      if (pfH < 0) {
-        pfPos.y += pfH;
-        pfH = -pfH;
-      }
-
-      const randId = randomId();
-      this.addPlatform(randId, pfPos, pfW, pfH, "green", false, true);
-    };
-
-    //this.controller.addDoOn("mousedown", onDown);
-    //this.controller.addDoOn("mousemove", onMove);
-    //this.controller.addDoOn("mouseup", onUp);
     this.controller.addDoOn("keydown", (e: KeyboardEvent) => {
       if (this.controller.isPressed("MetaLeft")) {
         if (e.code == "KeyA") {
@@ -164,7 +131,7 @@ export class Game {
     height: number,
     color: string,
     deadly: boolean,
-    collision: boolean,
+    passThrough: boolean,
     zIndex?: number
   ) {
     this.addEntity(
@@ -180,7 +147,7 @@ export class Game {
       )
     );
     this.entities[id].deadly = deadly;
-    this.entities[id].passThrough = !collision;
+    this.entities[id].passThrough = passThrough;
 
     return this.entities[id];
   }
@@ -189,11 +156,12 @@ export class Game {
     delete this.entities[id];
   }
 
-  addEntity(id: string, entity: any) {
+  addEntity(id: string, entity: any): Entity {
     if (this.entities[id] === undefined) {
       this.entities[id] = entity;
     }
     this.sortEntitiesByZIndex();
+    return this.entities[id];
   }
 
   sortEntitiesByZIndex() {

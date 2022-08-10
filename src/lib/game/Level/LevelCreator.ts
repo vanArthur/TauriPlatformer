@@ -18,7 +18,7 @@ export default class LevelCreator {
       height,
       "#cf6010",
       true,
-      true,
+      false,
       typeof zIndex === "undefined" ? 1 : zIndex
     );
   }
@@ -27,7 +27,7 @@ export default class LevelCreator {
     pos: Vec2,
     width: number,
     height: number,
-    collision: boolean,
+    passThrough: boolean,
     color: string,
     zIndex?: number
   ) {
@@ -38,7 +38,7 @@ export default class LevelCreator {
       height,
       color,
       false,
-      collision,
+      passThrough,
       typeof zIndex === "undefined" ? 1 : zIndex
     );
   }
